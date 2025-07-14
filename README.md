@@ -112,4 +112,3 @@ local searchbox = section:newSearchbox({
 })
 -- Methods: SetValue(string), GetValue(), Destroy()
 ```
-```
