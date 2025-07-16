@@ -7,7 +7,7 @@ function Library:newWindow()
 	local window = {}
 	window.CurrentTab = nil
 	
-	window["ScreenGui"] = Instance.new("ScreenGui", game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"));
+	window["ScreenGui"] = Instance.new("ScreenGui", game:GetService("CoreGui"));
 	window["ScreenGui"]["Name"] = [[Roskeet]];
 	window["ScreenGui"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling;
 
@@ -55,6 +55,17 @@ function Library:newWindow()
 			update(input)
 		end
 	end)
+
+	function window:ToggleVisibility()
+		window["UIBase"].Visible = not window["UIBase"].Visible
+		if not window["UIBase"].Visible then
+			dragging = false
+		end
+	end
+
+	function window:SetUIScale(val)
+		window["UIScale"]["Scale"] = val
+	end
 
 	window["UIOutline"] = Instance.new("Frame", window["UIBase"]);
 	window["UIOutline"]["BorderSizePixel"] = 0;
@@ -560,6 +571,7 @@ function Library:newWindow()
 				toggle["ToggleFrame"]["BackgroundTransparency"] = 1
 
 				toggle["Button"] = Instance.new("TextButton", toggle["ToggleFrame"])
+				toggle["Button"]["ZIndex"] = baseZIndex + 1
 				toggle["Button"]["TextSize"] = 14
 				toggle["Button"]["AutoButtonColor"] = false
 				toggle["Button"]["TextColor3"] = Color3.fromRGB(0, 0, 0)
@@ -606,6 +618,7 @@ function Library:newWindow()
 					}
 
 				toggle["TextLabel"] = Instance.new("TextLabel", toggle["ToggleFrame"])
+				toggle["TextLabel"]["ZIndex"] = baseZIndex + 1
 				toggle["TextLabel"]["BorderSizePixel"] = 0
 				toggle["TextLabel"]["TextSize"] = 11
 				toggle["TextLabel"]["TextXAlignment"] = Enum.TextXAlignment.Left
@@ -616,10 +629,12 @@ function Library:newWindow()
 				toggle["TextLabel"]["Size"] = UDim2.new(0, 168, 0, 14)
 				toggle["TextLabel"]["BorderColor3"] = Color3.fromRGB(0, 0, 0)
 				toggle["TextLabel"]["Text"] = params.Name
+
 				toggle["TextLabel"]["Position"] = UDim2.new(0, 20, 0, 2)
 
 				if bind[1] then
 					toggle["BindButton"] = Instance.new("TextButton", toggle["ToggleFrame"])
+					toggle["BindButton"]["ZIndex"] = baseZIndex + 1
 					toggle["BindButton"]["TextStrokeTransparency"] = 0
 					toggle["BindButton"]["TextXAlignment"] = Enum.TextXAlignment.Right
 					toggle["BindButton"]["TextStrokeColor3"] = Color3.fromRGB(14, 14, 14)
@@ -662,20 +677,20 @@ function Library:newWindow()
 							if otherName ~= name and otherInstance.BindVariantHandler then
 								otherInstance.BindVariantHandler.Visible = false
 								if otherInstance.ToggleFrame then
-									otherInstance.ToggleFrame.ZIndex = baseZIndex + 1
+									otherInstance.ToggleFrame.ZIndex = baseZIndex
 								elseif otherInstance.Bind then
-									otherInstance.Bind.ZIndex = baseZIndex + 1
+									otherInstance.Bind.ZIndex = baseZIndex
 								end
 							end
 						end
 						local isVisible = not toggle["BindVariantHandler"]["Visible"]
 						toggle["BindVariantHandler"]["Visible"] = isVisible
-						toggle["ToggleFrame"]["ZIndex"] = isVisible and (baseZIndex + 3) or (baseZIndex + 1)
+						toggle["ToggleFrame"]["ZIndex"] = isVisible and (baseZIndex + 2) or baseZIndex
 					end)
 
 					toggle["BindVariantHandler"] = Instance.new("Frame", toggle["BindButton"])
 					toggle["BindVariantHandler"]["Visible"] = false
-					toggle["BindVariantHandler"]["ZIndex"] = 4
+					toggle["BindVariantHandler"]["ZIndex"] = baseZIndex + 2
 					toggle["BindVariantHandler"]["BackgroundColor3"] = Color3.fromRGB(36, 36, 36)
 					toggle["BindVariantHandler"]["Size"] = UDim2.new(0, 98, 0, 80)
 					toggle["BindVariantHandler"]["Position"] = UDim2.new(0, 12, 0, 12)
@@ -689,6 +704,7 @@ function Library:newWindow()
 
 					for i, variant in ipairs(variants) do
 						toggle[variant] = Instance.new("TextButton", toggle["BindVariantHandler"])
+						toggle[variant]["ZIndex"] = baseZIndex + 2
 						toggle[variant]["TextXAlignment"] = Enum.TextXAlignment.Left
 						toggle[variant]["TextStrokeColor3"] = Color3.fromRGB(14, 14, 14)
 						toggle[variant]["TextSize"] = 10
@@ -708,7 +724,7 @@ function Library:newWindow()
 								toggle[v].TextColor3 = v == variant and Color3.fromRGB(140, 175, 43) or Color3.fromRGB(209, 209, 209)
 							end
 							toggle["BindVariantHandler"]["Visible"] = false
-							toggle["ToggleFrame"]["ZIndex"] = baseZIndex + 1
+							toggle["ToggleFrame"]["ZIndex"] = baseZIndex
 							if bind[3] == "Always on" then
 								callback(true)
 							elseif bind[3] == "Off hotkey" then
@@ -806,6 +822,7 @@ function Library:newWindow()
 				bindElement["Bind"]["BackgroundTransparency"] = 1
 
 				bindElement["TextLabel"] = Instance.new("TextLabel", bindElement["Bind"])
+				bindElement["TextLabel"]["ZIndex"] = baseZIndex + 1
 				bindElement["TextLabel"]["BorderSizePixel"] = 0
 				bindElement["TextLabel"]["TextSize"] = 11
 				bindElement["TextLabel"]["TextXAlignment"] = Enum.TextXAlignment.Left
@@ -819,6 +836,7 @@ function Library:newWindow()
 				bindElement["TextLabel"]["Position"] = UDim2.new(0, 20, 0, 2)
 
 				bindElement["BindButton"] = Instance.new("TextButton", bindElement["Bind"])
+				bindElement["BindButton"]["ZIndex"] = baseZIndex + 1
 				bindElement["BindButton"]["TextStrokeTransparency"] = 0
 				bindElement["BindButton"]["TextXAlignment"] = Enum.TextXAlignment.Right
 				bindElement["BindButton"]["TextStrokeColor3"] = Color3.fromRGB(14, 14, 14)
@@ -835,7 +853,6 @@ function Library:newWindow()
 				bindElement["BindButton"]["AnchorPoint"] = Vector2.new(1, 0)
 				bindElement["BindButton"]["AutomaticSize"] = Enum.AutomaticSize.X
 				bindElement["BindButton"]["Position"] = UDim2.new(1, 0, 0.5, -3)
-				
 
 				bindElement["BindButton"].MouseButton1Click:Connect(function()
 					bindElement["BindButton"]["Text"] = "[ ... ]"
@@ -862,20 +879,20 @@ function Library:newWindow()
 						if otherName ~= name and otherInstance.BindVariantHandler then
 							otherInstance.BindVariantHandler.Visible = false
 							if otherInstance.ToggleFrame then
-								otherInstance.ToggleFrame.ZIndex = baseZIndex + 1
+								otherInstance.ToggleFrame.ZIndex = baseZIndex
 							elseif otherInstance.Bind then
-								otherInstance.Bind.ZIndex = baseZIndex + 1
+								otherInstance.Bind.ZIndex = baseZIndex
 							end
 						end
 					end
 					local isVisible = not bindElement["BindVariantHandler"]["Visible"]
 					bindElement["BindVariantHandler"]["Visible"] = isVisible
-					bindElement["Bind"]["ZIndex"] = isVisible and (baseZIndex + 3) or (baseZIndex + 1)
+					bindElement["Bind"]["ZIndex"] = isVisible and (baseZIndex + 2) or baseZIndex
 				end)
 
 				bindElement["BindVariantHandler"] = Instance.new("Frame", bindElement["BindButton"])
 				bindElement["BindVariantHandler"]["Visible"] = false
-				bindElement["BindVariantHandler"]["ZIndex"] = 4
+				bindElement["BindVariantHandler"]["ZIndex"] = baseZIndex + 2
 				bindElement["BindVariantHandler"]["BackgroundColor3"] = Color3.fromRGB(36, 36, 36)
 				bindElement["BindVariantHandler"]["Size"] = UDim2.new(0, 98, 0, 80)
 				bindElement["BindVariantHandler"]["Position"] = UDim2.new(0, 12, 0, 12)
@@ -889,6 +906,7 @@ function Library:newWindow()
 
 				for i, variant in ipairs(variants) do
 					bindElement[variant] = Instance.new("TextButton", bindElement["BindVariantHandler"])
+					bindElement[variant]["ZIndex"] = baseZIndex + 2
 					bindElement[variant]["TextXAlignment"] = Enum.TextXAlignment.Left
 					bindElement[variant]["TextStrokeColor3"] = Color3.fromRGB(14, 14, 14)
 					bindElement[variant]["TextSize"] = 10
@@ -909,7 +927,7 @@ function Library:newWindow()
 							bindElement[v].TextColor3 = v == variant and Color3.fromRGB(140, 175, 43) or Color3.fromRGB(209, 209, 209)
 						end
 						bindElement["BindVariantHandler"]["Visible"] = false
-						bindElement["Bind"]["ZIndex"] = baseZIndex + 1
+						bindElement["Bind"]["ZIndex"] = baseZIndex
 						if bind[3] == "Always on" then
 							callback(true)
 						elseif bind[3] == "Off hotkey" then
@@ -948,7 +966,6 @@ function Library:newWindow()
 					end
 				end))
 
-				-- Handle outside clicks to close BindVariantHandler
 				table.insert(connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
 					if not gameProcessed and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2) then
 						if bindElement["BindVariantHandler"]["Visible"] then
@@ -963,7 +980,7 @@ function Library:newWindow()
 							end
 							if isClickOutside then
 								bindElement["BindVariantHandler"]["Visible"] = false
-								bindElement["Bind"]["ZIndex"] = baseZIndex + 1
+								bindElement["Bind"]["ZIndex"] = baseZIndex
 							end
 						end
 					end
@@ -976,16 +993,16 @@ function Library:newWindow()
 					Library[name] = nil
 					bindElement.Bind:Destroy()
 				end
-				
+
 				function bindElement:GetValue()
 					return {enabled = bind[1], key = bind[2], mode = bind[3]}
 				end
-				
+
 				Library[name] = bindElement
 
 				return bindElement
 			end
-			
+
 			function section:newText(params)
 				local textElement = {}
 
@@ -1006,6 +1023,7 @@ function Library:newWindow()
 				end
 
 				textElement["Text"] = Instance.new("Frame", section["ElementHandler"])
+				textElement["Text"]["ZIndex"] = 2
 				textElement["Text"]["BorderSizePixel"] = 0
 				textElement["Text"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
 				textElement["Text"]["AutomaticSize"] = Enum.AutomaticSize.Y
@@ -1015,6 +1033,7 @@ function Library:newWindow()
 				textElement["Text"]["BackgroundTransparency"] = 1
 
 				textElement["TextLabel"] = Instance.new("TextLabel", textElement["Text"])
+				textElement["TextLabel"]["ZIndex"] = 3
 				textElement["TextLabel"]["LineHeight"] = 1.5
 				textElement["TextLabel"]["BorderSizePixel"] = 0
 				textElement["TextLabel"]["TextSize"] = 12
@@ -1043,7 +1062,7 @@ function Library:newWindow()
 
 				return textElement
 			end
-			
+
 			function section:newButton(params)
 				local buttonElement = {}
 
@@ -1066,6 +1085,7 @@ function Library:newWindow()
 				assert(type(callback) == "function", "[roskeet] Invalid or missing callback function for button: '" .. name .. "'")
 
 				buttonElement["Button"] = Instance.new("Frame", section["ElementHandler"])
+				buttonElement["Button"]["ZIndex"] = 2
 				buttonElement["Button"]["BorderSizePixel"] = 0
 				buttonElement["Button"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
 				buttonElement["Button"]["Size"] = UDim2.new(0, 169, 0, 28)
@@ -1074,6 +1094,7 @@ function Library:newWindow()
 				buttonElement["Button"]["BackgroundTransparency"] = 1
 
 				buttonElement["TextButton"] = Instance.new("TextButton", buttonElement["Button"])
+				buttonElement["TextButton"]["ZIndex"] = 3
 				buttonElement["TextButton"]["TextStrokeTransparency"] = 0
 				buttonElement["TextButton"]["BorderSizePixel"] = 2
 				buttonElement["TextButton"]["TextSize"] = 14
@@ -1099,7 +1120,7 @@ function Library:newWindow()
 						ColorSequenceKeypoint.new(1, Color3.fromRGB(31, 31, 31))
 					}
 				end)
-					
+
 				buttonElement["UIGradient"] = Instance.new("UIGradient", buttonElement["TextButton"])
 				buttonElement["UIGradient"]["Rotation"] = 90
 				buttonElement["UIGradient"]["Color"] = ColorSequence.new{
@@ -1112,7 +1133,7 @@ function Library:newWindow()
 				buttonElement["UIStroke"]["Color"] = Color3.fromRGB(51, 51, 51)
 
 				buttonElement["TextLabel"] = Instance.new("TextLabel", buttonElement["TextButton"])
-				buttonElement["TextLabel"]["ZIndex"] = 0
+				buttonElement["TextLabel"]["ZIndex"] = 3
 				buttonElement["TextLabel"]["BorderSizePixel"] = 0
 				buttonElement["TextLabel"]["TextSize"] = 11
 				buttonElement["TextLabel"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
@@ -1146,7 +1167,7 @@ function Library:newWindow()
 
 				return buttonElement
 			end
-			
+
 			function section:newSlider(params)
 				local sliderElement = {}
 
@@ -1210,6 +1231,7 @@ function Library:newWindow()
 				sliderElement["Slider"]["BackgroundTransparency"] = 1
 
 				sliderElement["Update interval"] = Instance.new("TextLabel", sliderElement["Slider"])
+				sliderElement["Update interval"]["ZIndex"] = baseZIndex + 1
 				sliderElement["Update interval"]["BorderSizePixel"] = 0
 				sliderElement["Update interval"]["TextSize"] = 11
 				sliderElement["Update interval"]["TextXAlignment"] = Enum.TextXAlignment.Left
@@ -1224,6 +1246,7 @@ function Library:newWindow()
 				sliderElement["Update interval"]["Position"] = UDim2.new(0, 20, 0, 2)
 
 				sliderElement["TextButton"] = Instance.new("TextButton", sliderElement["Slider"])
+				sliderElement["TextButton"]["ZIndex"] = baseZIndex + 1
 				sliderElement["TextButton"]["TextXAlignment"] = Enum.TextXAlignment.Left
 				sliderElement["TextButton"]["TextSize"] = 14
 				sliderElement["TextButton"]["AutoButtonColor"] = false
@@ -1243,7 +1266,7 @@ function Library:newWindow()
 				}
 
 				sliderElement["Frame"] = Instance.new("Frame", sliderElement["TextButton"])
-				sliderElement["Frame"]["ZIndex"] = 0
+				sliderElement["Frame"]["ZIndex"] = baseZIndex + 1
 				sliderElement["Frame"]["BorderSizePixel"] = 0
 				sliderElement["Frame"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
 				sliderElement["Frame"]["Size"] = UDim2.new((currentValue - minValue) / (maxValue - minValue), 0, 0, 5)
@@ -1257,8 +1280,8 @@ function Library:newWindow()
 				}
 
 				sliderElement["ValueLabel"] = Instance.new("TextLabel", sliderElement["Frame"])
+				sliderElement["ValueLabel"]["ZIndex"] = baseZIndex + 1
 				sliderElement["ValueLabel"]["TextStrokeTransparency"] = 0
-				sliderElement["ValueLabel"]["ZIndex"] = 0
 				sliderElement["ValueLabel"]["BorderSizePixel"] = 0
 				sliderElement["ValueLabel"]["TextSize"] = 11
 				sliderElement["ValueLabel"]["TextStrokeColor3"] = Color3.fromRGB(20, 20, 20)
@@ -1273,6 +1296,7 @@ function Library:newWindow()
 
 				if bind then
 					sliderElement["BindButton"] = Instance.new("TextButton", sliderElement["Slider"])
+					sliderElement["BindButton"]["ZIndex"] = baseZIndex + 1
 					sliderElement["BindButton"]["TextStrokeTransparency"] = 0
 					sliderElement["BindButton"]["TextXAlignment"] = Enum.TextXAlignment.Right
 					sliderElement["BindButton"]["TextStrokeColor3"] = Color3.fromRGB(14, 14, 14)
@@ -1291,7 +1315,7 @@ function Library:newWindow()
 					sliderElement["BindButton"]["Position"] = UDim2.new(1, 0, 0.5, -3)
 
 					sliderElement["BindVariantHandler"] = Instance.new("Frame", sliderElement["BindButton"])
-					sliderElement["BindVariantHandler"]["ZIndex"] = 4
+					sliderElement["BindVariantHandler"]["ZIndex"] = baseZIndex + 2
 					sliderElement["BindVariantHandler"]["BackgroundColor3"] = Color3.fromRGB(36, 36, 36)
 					sliderElement["BindVariantHandler"]["Size"] = UDim2.new(0, 98, 0, 80)
 					sliderElement["BindVariantHandler"]["Position"] = UDim2.new(0, -84, 0, 12)
@@ -1306,6 +1330,7 @@ function Library:newWindow()
 					for i, variant in ipairs(variants) do
 						local variantName = variant:gsub(" ", "")
 						sliderElement[variantName] = Instance.new("TextButton", sliderElement["BindVariantHandler"])
+						sliderElement[variantName]["ZIndex"] = baseZIndex + 2
 						sliderElement[variantName]["TextXAlignment"] = Enum.TextXAlignment.Left
 						sliderElement[variantName]["TextStrokeColor3"] = Color3.fromRGB(14, 14, 14)
 						sliderElement[variantName]["TextSize"] = 10
@@ -1326,7 +1351,7 @@ function Library:newWindow()
 								sliderElement[v:gsub(" ", "")].TextColor3 = v == variant and Color3.fromRGB(140, 175, 43) or Color3.fromRGB(209, 209, 209)
 							end
 							sliderElement["BindVariantHandler"]["Visible"] = false
-							sliderElement["Slider"]["ZIndex"] = baseZIndex + 1
+							sliderElement["Slider"]["ZIndex"] = baseZIndex
 							if bind[3] == "Always on" then
 								callback({value = currentValue, bind = true})
 							elseif bind[3] == "Off hotkey" then
@@ -1401,16 +1426,15 @@ function Library:newWindow()
 							if otherName ~= name and otherInstance.BindVariantHandler then
 								otherInstance.BindVariantHandler.Visible = false
 								if otherInstance.Slider then
-									otherInstance.Slider.ZIndex = baseZIndex + 1
+									otherInstance.Slider.ZIndex = baseZIndex
 								end
 							end
 						end
 						local isVisible = not sliderElement["BindVariantHandler"]["Visible"]
 						sliderElement["BindVariantHandler"]["Visible"] = isVisible
-						sliderElement["Slider"]["ZIndex"] = isVisible and (baseZIndex + 3) or (baseZIndex + 1)
+						sliderElement["Slider"]["ZIndex"] = isVisible and (baseZIndex + 2) or baseZIndex
 					end))
 
-					-- Keybind input handling
 					table.insert(connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
 						if not gameProcessed and bind[2] and input.KeyCode == bind[2] then
 							if bind[3] == "On hotkey" then
@@ -1446,7 +1470,7 @@ function Library:newWindow()
 					Library[name] = nil
 					sliderElement.Slider:Destroy()
 				end
-				
+
 				function sliderElement:SetValue(value)
 					if type(value) == "number" and value >= minValue and value <= maxValue then
 						currentValue = tonumber(string.format("%." .. decimals .. "f", value))
@@ -1464,7 +1488,7 @@ function Library:newWindow()
 						warn("[roskeet] Invalid value for slider: '" .. name .. "'. Value must be a number between " .. minValue .. " and " .. maxValue)
 					end
 				end
-				
+
 				function sliderElement:GetValue()
 					return currentValue
 				end
@@ -1479,7 +1503,7 @@ function Library:newWindow()
 
 				return sliderElement
 			end
-			
+
 			function section:newSelectbox(params)
 				local selectboxElement = {}
 
@@ -1488,7 +1512,7 @@ function Library:newWindow()
 				local name = params.Name or "Selectbox"
 				local options = params.Options or {"Variant"}
 				local defaultValue = params.Default or (params.Choice == "multi" and {} or options[1])
-				local choice = params.Choice or "single" -- single or multi selection
+				local choice = params.Choice or "single"
 				local callback = params.Callback or function() end
 
 				if type(name) ~= "string" or name == "" then
@@ -1535,7 +1559,7 @@ function Library:newWindow()
 					end
 				end
 				local connections = {}
-				local baseZIndex = 3
+				local baseZIndex = 2
 
 				selectboxElement["Selectbox"] = Instance.new("Frame", section["ElementHandler"])
 				selectboxElement["Selectbox"]["ZIndex"] = baseZIndex
@@ -1547,6 +1571,7 @@ function Library:newWindow()
 				selectboxElement["Selectbox"]["BackgroundTransparency"] = 1
 
 				selectboxElement["TextLabel"] = Instance.new("TextLabel", selectboxElement["Selectbox"])
+				selectboxElement["TextLabel"]["ZIndex"] = baseZIndex + 1
 				selectboxElement["TextLabel"]["BorderSizePixel"] = 0
 				selectboxElement["TextLabel"]["TextSize"] = 11
 				selectboxElement["TextLabel"]["TextXAlignment"] = Enum.TextXAlignment.Left
@@ -1560,13 +1585,13 @@ function Library:newWindow()
 				selectboxElement["TextLabel"]["Position"] = UDim2.new(0, 20, 0, 2)
 
 				selectboxElement["TextButton"] = Instance.new("TextButton", selectboxElement["Selectbox"])
+				selectboxElement["TextButton"]["ZIndex"] = baseZIndex + 1
 				selectboxElement["TextButton"]["TextXAlignment"] = Enum.TextXAlignment.Left
 				selectboxElement["TextButton"]["TextSize"] = 14
 				selectboxElement["TextButton"]["AutoButtonColor"] = false
 				selectboxElement["TextButton"]["TextColor3"] = Color3.fromRGB(255, 255, 255)
 				selectboxElement["TextButton"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
 				selectboxElement["TextButton"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-				selectboxElement["TextButton"]["ZIndex"] = baseZIndex
 				selectboxElement["TextButton"]["Size"] = UDim2.new(0, 156, 0, 18)
 				selectboxElement["TextButton"]["BorderColor3"] = Color3.fromRGB(13, 13, 13)
 				selectboxElement["TextButton"]["Text"] = ""
@@ -1580,6 +1605,7 @@ function Library:newWindow()
 				}
 
 				selectboxElement["SelectedLabel"] = Instance.new("TextLabel", selectboxElement["TextButton"])
+				selectboxElement["SelectedLabel"]["ZIndex"] = baseZIndex + 1
 				selectboxElement["SelectedLabel"]["TextTruncate"] = Enum.TextTruncate.AtEnd
 				selectboxElement["SelectedLabel"]["BorderSizePixel"] = 0
 				selectboxElement["SelectedLabel"]["TextSize"] = 12
@@ -1595,7 +1621,7 @@ function Library:newWindow()
 
 				selectboxElement["Dropdown"] = Instance.new("Frame", selectboxElement["TextButton"])
 				selectboxElement["Dropdown"]["Visible"] = false
-				selectboxElement["Dropdown"]["ZIndex"] = baseZIndex + 1
+				selectboxElement["Dropdown"]["ZIndex"] = baseZIndex + 2
 				selectboxElement["Dropdown"]["BackgroundColor3"] = Color3.fromRGB(36, 36, 36)
 				selectboxElement["Dropdown"]["AutomaticSize"] = Enum.AutomaticSize.Y
 				selectboxElement["Dropdown"]["Size"] = UDim2.new(0, 156, 0, 0)
@@ -1609,6 +1635,7 @@ function Library:newWindow()
 				local optionButtons = {}
 				for i, option in ipairs(options) do
 					local button = Instance.new("TextButton", selectboxElement["Dropdown"])
+					button["ZIndex"] = baseZIndex + 2
 					button["BorderSizePixel"] = 0
 					button["TextXAlignment"] = Enum.TextXAlignment.Left
 					button["TextSize"] = 12
@@ -1616,7 +1643,6 @@ function Library:newWindow()
 					button["TextColor3"] = (choice == "multi" and table.find(selectedValues, option) or selectedValues == option) and Color3.fromRGB(160, 203, 44) or Color3.fromRGB(255, 255, 255)
 					button["BackgroundColor3"] = Color3.fromRGB(36, 36, 36)
 					button["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-					button["ZIndex"] = baseZIndex + 1
 					button["Size"] = UDim2.new(1, 0, 0, 18)
 					button["BorderColor3"] = Color3.fromRGB(0, 0, 0)
 					button["Text"] = "   " .. option
@@ -1669,15 +1695,15 @@ function Library:newWindow()
 								otherInstance.Selectbox.ZIndex = baseZIndex
 							end
 							if otherInstance.ToggleFrame then
-								otherInstance.ToggleFrame.ZIndex = baseZIndex + 1
+								otherInstance.ToggleFrame.ZIndex = baseZIndex
 							elseif otherInstance.Bind then
-								otherInstance.Bind.ZIndex = baseZIndex + 1
+								otherInstance.Bind.ZIndex = baseZIndex
 							end
 						end
 					end
 					local isVisible = not selectboxElement["Dropdown"]["Visible"]
 					selectboxElement["Dropdown"]["Visible"] = isVisible
-					selectboxElement["Selectbox"]["ZIndex"] = isVisible and (baseZIndex + 3) or baseZIndex
+					selectboxElement["Selectbox"]["ZIndex"] = isVisible and (baseZIndex + 2) or baseZIndex
 				end))
 
 				table.insert(connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
@@ -1745,7 +1771,7 @@ function Library:newWindow()
 					Library[name] = nil
 					selectboxElement.Selectbox:Destroy()
 				end
-				
+
 				function selectboxElement:GetValue()
 					return selectedValues
 				end
@@ -1798,7 +1824,7 @@ function Library:newWindow()
 				searchboxElement["SearchList"] = Instance.new("Frame", section["ElementHandler"])
 				searchboxElement["SearchList"]["BorderSizePixel"] = 0
 				searchboxElement["SearchList"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
-				searchboxElement["SearchList"]["Size"] = UDim2.new(1, -40, 0, 130)
+				searchboxElement["SearchList"]["Size"] = UDim2.new(1, -40, 0, 38)
 				searchboxElement["SearchList"]["BorderColor3"] = Color3.fromRGB(0, 0, 0)
 				searchboxElement["SearchList"]["Name"] = "SearchList"
 				searchboxElement["SearchList"]["BackgroundTransparency"] = 1
@@ -2006,27 +2032,6 @@ function Library:newWindow()
 				table.insert(connections, searchboxElement["TextBox"].Changed:Connect(function(property)
 					if property == "Text" then
 						updateVariantList(searchboxElement["TextBox"].Text)
-					end
-				end))
-
-				-- Handle outside clicks to close scrolling frame
-				table.insert(connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
-					if not gameProcessed and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2) then
-						if searchboxElement["ScrollingFrame"]["Visible"] and not searchboxElement["TextBox"]:IsFocused() then
-							local mousePos = UserInputService:GetMouseLocation()
-							local guiObjects = GuiService:GetGuiObjectsAtPosition(mousePos.X, mousePos.Y)
-							local isClickOutside = true
-							for _, obj in ipairs(guiObjects) do
-								if obj == searchboxElement["ScrollingFrame"] or obj:IsDescendantOf(searchboxElement["ScrollingFrame"]) or obj == searchboxElement["SearchHandler"] or obj:IsDescendantOf(searchboxElement["SearchHandler"]) then
-									isClickOutside = false
-									break
-								end
-							end
-							if isClickOutside then
-								searchboxElement["ScrollingFrame"]["Visible"] = false
-								searchboxElement["SearchList"]["ZIndex"] = baseZIndex
-							end
-						end
 					end
 				end))
 
