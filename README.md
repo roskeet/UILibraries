@@ -105,10 +105,29 @@ local selectbox = section:newSelectbox({
 ### Searchbox
 ```lua
 local searchbox = section:newSearchbox({
-    Name = string,                -- Searchbox name
+    Name = string,               -- Searchbox name
     Options = {string},          -- Array of options
     Default = string,            -- Default value (optional, default: "")
     Callback = function(value)   -- Called with selected value
+})
+-- Methods: SetValue(string), GetValue(), Destroy()
+```
+### Textbox
+```lua
+local textbox = Menu:newTextbox({
+	Name = sting, -- Textbox name
+	Callback = function(value), -- Called with text
+})
+-- Methods: SetValue(string), GetValue(), Destroy()
+```
+### Colorpicker
+```lua
+local colorpicker = Menu:newColorpicker({
+	Name = string, -- Colorpicker name
+	Default = Color3, -- Default color
+	Callback = function(value), -- Default Called with color and transparency
+        print("color: :..value[1].."; transparency: :..value[2])
+    end
 })
 -- Methods: SetValue(string), GetValue(), Destroy()
 ```
