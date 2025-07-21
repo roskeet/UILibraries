@@ -2,11 +2,12 @@ local Library,Loader = {},{}
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local GuiService = game:GetService("GuiService")
+local HttpService = game:GetService("HttpService")
 
 function Library:newWindow()
 	local window = {}
 	window.CurrentTab = nil
-	
+
 	window["ScreenGui"] = Instance.new("ScreenGui", game:GetService("CoreGui"));
 	window["ScreenGui"]["Name"] = [[Roskeet]];
 	window["ScreenGui"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling;
@@ -110,7 +111,7 @@ function Library:newWindow()
 	window["HandlerSidebar"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 	window["HandlerSidebar"]["Name"] = [[Sidebar]];
 	window["HandlerSidebar"]["BackgroundTransparency"] = 1;
-	
+
 	window["SidebarLine"] = Instance.new("Frame", window["UIBaseHandler"]);
 	window["SidebarLine"]["ZIndex"] = 2;
 	window["SidebarLine"]["BorderSizePixel"] = 0;
@@ -127,7 +128,7 @@ function Library:newWindow()
 
 	window["SidebarUIPadding"] = Instance.new("UIPadding", window["HandlerSidebar"]);
 	window["SidebarUIPadding"]["PaddingTop"] = UDim.new(0, 13);
-	
+
 	window["HandlerCenter"] = Instance.new("Frame", window["UIBaseHandler"]);
 	window["HandlerCenter"]["BorderSizePixel"] = 0;
 	window["HandlerCenter"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
@@ -149,7 +150,7 @@ function Library:newWindow()
 	window["BaseBackground"]["Size"] = UDim2.new(1, 0, 1, 0);
 	window["BaseBackground"]["BorderColor3"] = Color3.fromRGB(9, 9, 9);
 	window["BaseBackground"]["Name"] = [[BackgroundImage]];
-	
+
 	function window:newTab(params)
 		assert(type(params) == "table", "[roskeet] createTab requires a table as its parameter")
 
@@ -186,7 +187,7 @@ function Library:newWindow()
 			if window.CurrentTab == nil then
 				Library[name].Frame["TabFrame"]["Visible"] = true
 			end
-			
+
 
 			Library[name].Frame["LeftSideTab"] = Instance.new("Frame", Library[name].Frame["TabFrame"]);
 			Library[name].Frame["LeftSideTab"]["ZIndex"] = 2;
@@ -216,7 +217,7 @@ function Library:newWindow()
 			Library[name].Frame["RightSideUIListLayout"]["Padding"] = UDim.new(0, 20);
 			Library[name].Frame["RightSideUIListLayout"]["SortOrder"] = Enum.SortOrder.LayoutOrder;
 		end
-		
+
 		do
 			Library[name].Button[name.."_Button"] = Instance.new("Frame", window["HandlerSidebar"]);
 			Library[name].Button[name.."_Button"]["BorderSizePixel"] = 0;
@@ -239,7 +240,7 @@ function Library:newWindow()
 			if window.CurrentTab == nil then
 				Library[name].Button["SelectedBackground"]["Visible"] = true
 			end
-			
+
 
 			Library[name].Button["BackgroundLine"] = Instance.new("Frame", Library[name].Button["SelectedBackground"]);
 			Library[name].Button["BackgroundLine"]["ZIndex"] = 2;
@@ -309,10 +310,10 @@ function Library:newWindow()
 				window.CurrentTab.Frame["TabFrame"]["Visible"] = false
 				window.CurrentTab.Button["Icon"]["ImageColor3"] = Color3.fromRGB(90, 90, 90);
 				Library[name].Button["Icon"]["ImageColor3"] = Color3.fromRGB(255, 255, 255);
-				
+
 				window.CurrentTab = Library[name]
 			end)
-			
+
 			Library[name].Button["Button"].MouseEnter:Connect(function()
 				if window.CurrentTab["Name"] == name then
 					return
@@ -325,10 +326,10 @@ function Library:newWindow()
 				end
 				Library[name].Button["Icon"]["ImageColor3"] = Color3.fromRGB(90, 90, 90);
 			end)
-			
-			
+
+
 		end
-		
+
 		local tab = Library[name]
 		local sectionCount = {
 			Left = 0,
@@ -545,7 +546,7 @@ function Library:newWindow()
 				toggle.State = defaultValue
 				local connections = {}
 
-				function toggle:SetState(newState)
+				function toggle:SetValue(newState)
 					if newState ~= toggle.State then
 						toggle.State = newState
 						toggle["UIGradient"]["Color"] = newState and 
@@ -584,7 +585,7 @@ function Library:newWindow()
 				toggle["Button"]["Position"] = UDim2.new(0, 0, 0.5, -3)
 
 				toggle["Button"].MouseButton1Click:Connect(function()
-					toggle:SetState(not toggle.State)
+					toggle:SetValue(not toggle.State)
 				end)
 
 				toggle["Button"].MouseEnter:Connect(function()
@@ -996,6 +997,15 @@ function Library:newWindow()
 
 				function bindElement:GetValue()
 					return {enabled = bind[1], key = bind[2], mode = bind[3]}
+				end
+
+				function bindElement:SetValue(value)
+					if type(value) == "table" and value.enabled ~= nil and typeof(value.key) == "EnumItem" and table.find({"On hotkey", "Always on", "Toggle", "Off hotkey"}, value.mode) then
+						bind = {value.enabled, value.key, value.mode}
+						bindElement["BindButton"]["Text"] = type(bind[2]) == "userdata" and "[ " .. getShortKeyName(bind[2]) .. " ]" or "[ - ]"
+					else
+						warn("[roskeet] Invalid value for bind: '" .. name .. "'. Value must be a table {enabled, key, mode}")
+					end
 				end
 
 				Library[name] = bindElement
@@ -1504,6 +1514,380 @@ function Library:newWindow()
 				return sliderElement
 			end
 
+			function section:newColorpicker(params)
+				local colorpickerElement = {}
+
+				assert(type(params) == "table", "[roskeet] newColorpicker requires a table as its parameter")
+
+				local name = params.Name or "Colorpicker"
+				local defaultColor = params.Default or Color3.fromRGB(255, 0, 0)
+				local defaultTransparency = params.Transparency or 0
+				local callback = params.Callback or function() end
+
+				if type(name) ~= "string" or name == "" then
+					name = "Colorpicker"
+					warn("[roskeet] Invalid or missing colorpicker name. Using default name: '" .. name .. "'")
+				end
+
+				if typeof(defaultColor) ~= "Color3" then
+					defaultColor = Color3.fromRGB(255, 0, 0)
+					warn("[roskeet] Invalid default color for colorpicker: '" .. name .. "'. Using default: Red")
+				end
+
+				if type(defaultTransparency) ~= "number" or defaultTransparency < 0 or defaultTransparency > 1 then
+					defaultTransparency = 0
+					warn("[roskeet] Invalid transparency for colorpicker: '" .. name .. "'. Using default: 0")
+				end
+
+				assert(type(callback) == "function", "[roskeet] Invalid or missing callback function for colorpicker: '" .. name .. "'")
+
+				local currentColor = defaultColor
+				local currentTransparency = defaultTransparency
+				local connections = {}
+				local baseZIndex = 2
+				local isOpen = false
+
+				colorpickerElement["Colorpicker"] = Instance.new("Frame", section["ElementHandler"])
+				colorpickerElement["Colorpicker"]["ZIndex"] = baseZIndex
+				colorpickerElement["Colorpicker"]["BorderSizePixel"] = 0
+				colorpickerElement["Colorpicker"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
+				colorpickerElement["Colorpicker"]["Size"] = UDim2.new(1, -40, 0, 16)
+				colorpickerElement["Colorpicker"]["BorderColor3"] = Color3.fromRGB(0, 0, 0)
+				colorpickerElement["Colorpicker"]["Name"] = "Colorpicker"
+				colorpickerElement["Colorpicker"]["BackgroundTransparency"] = 1
+
+				colorpickerElement["TextLabel"] = Instance.new("TextLabel", colorpickerElement["Colorpicker"])
+				colorpickerElement["TextLabel"]["BorderSizePixel"] = 0
+				colorpickerElement["TextLabel"]["TextSize"] = 11
+				colorpickerElement["TextLabel"]["TextXAlignment"] = Enum.TextXAlignment.Left
+				colorpickerElement["TextLabel"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
+				colorpickerElement["TextLabel"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+				colorpickerElement["TextLabel"]["TextColor3"] = Color3.fromRGB(255, 255, 255)
+				colorpickerElement["TextLabel"]["BackgroundTransparency"] = 1
+				colorpickerElement["TextLabel"]["Size"] = UDim2.new(0, 168, 0, 14)
+				colorpickerElement["TextLabel"]["BorderColor3"] = Color3.fromRGB(0, 0, 0)
+				colorpickerElement["TextLabel"]["Text"] = name
+				colorpickerElement["TextLabel"]["Position"] = UDim2.new(0, 20, 0, 2)
+
+				colorpickerElement["ColorButton"] = Instance.new("TextButton", colorpickerElement["Colorpicker"])
+				colorpickerElement["ColorButton"]["TextStrokeTransparency"] = 0
+				colorpickerElement["ColorButton"]["TextXAlignment"] = Enum.TextXAlignment.Right
+				colorpickerElement["ColorButton"]["TextStrokeColor3"] = Color3.fromRGB(15, 15, 15)
+				colorpickerElement["ColorButton"]["TextSize"] = 9
+				colorpickerElement["ColorButton"]["AutoButtonColor"] = false
+				colorpickerElement["ColorButton"]["TextColor3"] = Color3.fromRGB(143, 143, 143)
+				colorpickerElement["ColorButton"]["BackgroundColor3"] = currentColor
+				colorpickerElement["ColorButton"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Medium, Enum.FontStyle.Normal)
+				colorpickerElement["ColorButton"]["AnchorPoint"] = Vector2.new(1, 0)
+				colorpickerElement["ColorButton"]["AutomaticSize"] = Enum.AutomaticSize.X
+				colorpickerElement["ColorButton"]["Size"] = UDim2.new(0, 15, 0, 7)
+				colorpickerElement["ColorButton"]["BorderColor3"] = Color3.fromRGB(14, 14, 14)
+				colorpickerElement["ColorButton"]["Text"] = ""
+				colorpickerElement["ColorButton"]["Position"] = UDim2.new(1, 0, 0.5, -2)
+				
+				colorpickerElement["ColorButtonGradient"] = Instance.new("UIGradient", colorpickerElement["ColorButton"]);
+				colorpickerElement["ColorButtonGradient"]["Rotation"] = 90;
+				colorpickerElement["ColorButtonGradient"]["Color"] = ColorSequence.new{ColorSequenceKeypoint.new(0.000, Color3.fromRGB(255, 255, 255)),ColorSequenceKeypoint.new(1.000, Color3.fromRGB(214, 214, 214))};
+
+
+				colorpickerElement["PickerFrame"] = Instance.new("Frame", colorpickerElement["Colorpicker"])
+				colorpickerElement["PickerFrame"]["BackgroundColor3"] = Color3.fromRGB(62, 62, 62)
+				colorpickerElement["PickerFrame"]["Size"] = UDim2.new(0, 178, 0, 173)
+				colorpickerElement["PickerFrame"]["Position"] = UDim2.new(1, -178, 0, 16)
+				colorpickerElement["PickerFrame"]["BorderColor3"] = Color3.fromRGB(15, 15, 15)
+				colorpickerElement["PickerFrame"]["Name"] = "PickerFrame"
+				colorpickerElement["PickerFrame"]["Visible"] = false
+
+				colorpickerElement["Outline"] = Instance.new("Frame", colorpickerElement["PickerFrame"])
+				colorpickerElement["Outline"]["BorderSizePixel"] = 0
+				colorpickerElement["Outline"]["BackgroundColor3"] = Color3.fromRGB(42, 42, 42)
+				colorpickerElement["Outline"]["Size"] = UDim2.new(1, -4, 1, -4)
+				colorpickerElement["Outline"]["Position"] = UDim2.new(0, 2, 0, 2)
+				colorpickerElement["Outline"]["BorderColor3"] = Color3.fromRGB(15, 15, 15)
+				colorpickerElement["Outline"]["Name"] = "Outline"
+
+				colorpickerElement["Saturation"] = Instance.new("TextButton", colorpickerElement["PickerFrame"])
+				colorpickerElement["Saturation"]["BorderSizePixel"] = 0
+				colorpickerElement["Saturation"]["TextSize"] = 14
+				colorpickerElement["Saturation"]["AutoButtonColor"] = false
+				colorpickerElement["Saturation"]["TextColor3"] = Color3.fromRGB(0, 0, 0)
+				colorpickerElement["Saturation"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
+				colorpickerElement["Saturation"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+				colorpickerElement["Saturation"]["BackgroundTransparency"] = 1
+				colorpickerElement["Saturation"]["Size"] = UDim2.new(0, 150, 0, 150)
+				colorpickerElement["Saturation"]["BorderColor3"] = Color3.fromRGB(0, 0, 0)
+				colorpickerElement["Saturation"]["Text"] = ""
+				colorpickerElement["Saturation"]["Name"] = "Saturation"
+				colorpickerElement["Saturation"]["Position"] = UDim2.new(0, 5, 0, 5)
+
+				colorpickerElement["CanvasGroup"] = Instance.new("CanvasGroup", colorpickerElement["Saturation"])
+				colorpickerElement["CanvasGroup"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
+				colorpickerElement["CanvasGroup"]["Size"] = UDim2.new(1, 0, 1, 0)
+				colorpickerElement["CanvasGroup"]["BorderColor3"] = Color3.fromRGB(14, 14, 14)
+
+				colorpickerElement["SaturationGradient"] = Instance.new("UIGradient", colorpickerElement["CanvasGroup"])
+				colorpickerElement["SaturationGradient"]["Color"] = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1, defaultColor)}
+
+				colorpickerElement["ValueGradientFrame"] = Instance.new("Frame", colorpickerElement["CanvasGroup"])
+				colorpickerElement["ValueGradientFrame"]["BackgroundColor3"] = Color3.fromRGB(13, 13, 13)
+				colorpickerElement["ValueGradientFrame"]["Size"] = UDim2.new(1, 0, 1, 0)
+
+				colorpickerElement["ValueGradient"] = Instance.new("UIGradient", colorpickerElement["ValueGradientFrame"])
+				colorpickerElement["ValueGradient"]["Rotation"] = -90
+				colorpickerElement["ValueGradient"]["Transparency"] = NumberSequence.new{NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(1, 1)}
+				colorpickerElement["ValueGradient"]["Color"] = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)), ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))}
+
+				colorpickerElement["SaturationCursor"] = Instance.new("Frame", colorpickerElement["Saturation"])
+				colorpickerElement["SaturationCursor"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
+				colorpickerElement["SaturationCursor"]["Size"] = UDim2.new(0, 2, 0, 2)
+				colorpickerElement["SaturationCursor"]["Position"] = UDim2.new(0, 100, 0, 55)
+				colorpickerElement["SaturationCursor"]["BorderColor3"] = Color3.fromRGB(14, 14, 14)
+				colorpickerElement["SaturationCursor"]["Name"] = "Cursor"
+				colorpickerElement["SaturationCursor"]["BackgroundTransparency"] = 0.5
+
+				colorpickerElement["Hue"] = Instance.new("TextButton", colorpickerElement["PickerFrame"])
+				colorpickerElement["Hue"]["BorderSizePixel"] = 0
+				colorpickerElement["Hue"]["TextSize"] = 14
+				colorpickerElement["Hue"]["AutoButtonColor"] = false
+				colorpickerElement["Hue"]["TextColor3"] = Color3.fromRGB(0, 0, 0)
+				colorpickerElement["Hue"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
+				colorpickerElement["Hue"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+				colorpickerElement["Hue"]["Size"] = UDim2.new(0, 15, 0, 150)
+				colorpickerElement["Hue"]["BorderColor3"] = Color3.fromRGB(0, 0, 0)
+				colorpickerElement["Hue"]["Text"] = ""
+				colorpickerElement["Hue"]["Name"] = "Hue"
+				colorpickerElement["Hue"]["Position"] = UDim2.new(1, -20, 0, 5)
+
+				colorpickerElement["HueGradient"] = Instance.new("UIGradient", colorpickerElement["Hue"])
+				colorpickerElement["HueGradient"]["Rotation"] = -90
+				colorpickerElement["HueGradient"]["Color"] = ColorSequence.new{
+					ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+					ColorSequenceKeypoint.new(0.070, Color3.fromRGB(255, 108, 0)),
+					ColorSequenceKeypoint.new(0.140, Color3.fromRGB(255, 215, 0)),
+					ColorSequenceKeypoint.new(0.210, Color3.fromRGB(189, 255, 0)),
+					ColorSequenceKeypoint.new(0.280, Color3.fromRGB(82, 255, 0)),
+					ColorSequenceKeypoint.new(0.350, Color3.fromRGB(0, 255, 26)),
+					ColorSequenceKeypoint.new(0.420, Color3.fromRGB(0, 255, 133)),
+					ColorSequenceKeypoint.new(0.490, Color3.fromRGB(0, 255, 240)),
+					ColorSequenceKeypoint.new(0.560, Color3.fromRGB(0, 164, 255)),
+					ColorSequenceKeypoint.new(0.630, Color3.fromRGB(0, 57, 255)),
+					ColorSequenceKeypoint.new(0.700, Color3.fromRGB(51, 0, 255)),
+					ColorSequenceKeypoint.new(0.770, Color3.fromRGB(159, 0, 255)),
+					ColorSequenceKeypoint.new(0.840, Color3.fromRGB(255, 0, 245)),
+					ColorSequenceKeypoint.new(0.910, Color3.fromRGB(255, 0, 138)),
+					ColorSequenceKeypoint.new(0.980, Color3.fromRGB(255, 0, 31)),
+					ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
+				}
+
+				colorpickerElement["HueCursor"] = Instance.new("Frame", colorpickerElement["Hue"])
+				colorpickerElement["HueCursor"]["BorderSizePixel"] = 0
+				colorpickerElement["HueCursor"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
+				colorpickerElement["HueCursor"]["Size"] = UDim2.new(1, -2, 0, 2)
+				colorpickerElement["HueCursor"]["Position"] = UDim2.new(0, 1, 0, 0)
+				colorpickerElement["HueCursor"]["BorderColor3"] = Color3.fromRGB(0, 0, 0)
+				colorpickerElement["HueCursor"]["Name"] = "Cursor"
+				colorpickerElement["HueCursor"]["BackgroundTransparency"] = 0.5
+
+				colorpickerElement["HueCursorStroke"] = Instance.new("UIStroke", colorpickerElement["HueCursor"])
+				colorpickerElement["HueCursorStroke"]["Color"] = Color3.fromRGB(14, 14, 14)
+
+				colorpickerElement["Transparency"] = Instance.new("TextButton", colorpickerElement["PickerFrame"])
+				colorpickerElement["Transparency"]["TextSize"] = 14
+				colorpickerElement["Transparency"]["AutoButtonColor"] = false
+				colorpickerElement["Transparency"]["TextColor3"] = Color3.fromRGB(0, 0, 0)
+				colorpickerElement["Transparency"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
+				colorpickerElement["Transparency"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+				colorpickerElement["Transparency"]["Size"] = UDim2.new(0, 150, 0, 10)
+				colorpickerElement["Transparency"]["BorderColor3"] = Color3.fromRGB(14, 14, 14)
+				colorpickerElement["Transparency"]["Text"] = ""
+				colorpickerElement["Transparency"]["Name"] = "Transparency"
+				colorpickerElement["Transparency"]["Position"] = UDim2.new(0, 5, 1, -15)
+
+				colorpickerElement["TransparencyStroke"] = Instance.new("UIStroke", colorpickerElement["Transparency"])
+				colorpickerElement["TransparencyStroke"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border
+				colorpickerElement["TransparencyStroke"]["LineJoinMode"] = Enum.LineJoinMode.Miter
+				colorpickerElement["TransparencyStroke"]["Color"] = Color3.fromRGB(13, 13, 13)
+
+				colorpickerElement["TransparencyCursor"] = Instance.new("Frame", colorpickerElement["Transparency"])
+				colorpickerElement["TransparencyCursor"]["BorderSizePixel"] = 0
+				colorpickerElement["TransparencyCursor"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
+				colorpickerElement["TransparencyCursor"]["Size"] = UDim2.new(0, 2, 1, -2)
+				colorpickerElement["TransparencyCursor"]["Position"] = UDim2.new(0, 0, 0, 1)
+				colorpickerElement["TransparencyCursor"]["BorderColor3"] = Color3.fromRGB(0, 0, 0)
+				colorpickerElement["TransparencyCursor"]["Name"] = "Cursor"
+				colorpickerElement["TransparencyCursor"]["BackgroundTransparency"] = 0.5
+
+				colorpickerElement["TransparencyCursorStroke"] = Instance.new("UIStroke", colorpickerElement["TransparencyCursor"])
+				colorpickerElement["TransparencyCursorStroke"]["LineJoinMode"] = Enum.LineJoinMode.Miter
+				colorpickerElement["TransparencyCursorStroke"]["Color"] = Color3.fromRGB(14, 14, 14)
+
+				local function updateColor()
+					local h, s, v = currentColor:ToHSV()
+					colorpickerElement["SaturationGradient"]["Color"] = ColorSequence.new{
+						ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+						ColorSequenceKeypoint.new(1, Color3.fromHSV(h, 1, 1))
+					}
+					colorpickerElement["ColorButton"]["BackgroundColor3"] = currentColor
+					colorpickerElement["Transparency"]["Transparency"] = currentTransparency
+					callback({color = currentColor, transparency = currentTransparency})
+				end
+
+				local function updateHue(input)
+					local hueHeight = colorpickerElement["Hue"].AbsoluteSize.Y
+					local huePos = colorpickerElement["Hue"].AbsolutePosition.Y
+					local mouseY = input.Position.Y
+					local relativeY = math.clamp(mouseY - huePos, 0, hueHeight)
+					local ratio = relativeY / hueHeight
+					local h, s, v = currentColor:ToHSV()
+					h = 1 - ratio
+					currentColor = Color3.fromHSV(h, s, v)
+					colorpickerElement["HueCursor"]["Position"] = UDim2.new(0, 1, 0, relativeY)
+					updateColor()
+				end
+
+
+
+				local function updateSaturationValue(input)
+					local satWidth = colorpickerElement["Saturation"].AbsoluteSize.X
+					local satHeight = colorpickerElement["Saturation"].AbsoluteSize.Y
+					local satPosX = colorpickerElement["Saturation"].AbsolutePosition.X
+					local satPosY = colorpickerElement["Saturation"].AbsolutePosition.Y
+					local mouseX = input.Position.X
+					local mouseY = input.Position.Y
+					local relativeX = math.clamp(mouseX - satPosX, 0, satWidth)
+					local relativeY = math.clamp(mouseY - satPosY, 0, satHeight)
+					local s = relativeX / satWidth
+					local v = 1 - (relativeY / satHeight)
+					local h = currentColor:ToHSV()
+					currentColor = Color3.fromHSV(h, s, v)
+					colorpickerElement["SaturationCursor"]["Position"] = UDim2.new(0, relativeX, 0, relativeY)
+					updateColor()
+				end
+
+				local function updateTransparency(input)
+					local transWidth = colorpickerElement["Transparency"].AbsoluteSize.X
+					local transPos = colorpickerElement["Transparency"].AbsolutePosition.X
+					local mouseX = input.Position.X
+					local relativeX = math.clamp(mouseX - transPos, 0, transWidth)
+					local ratio = relativeX / transWidth
+					currentTransparency = 1 - ratio 
+					colorpickerElement["TransparencyCursor"]["Position"] = UDim2.new(0, relativeX, 0, 1)
+					colorpickerElement["Transparency"]["Transparency"] = currentTransparency
+					updateColor()
+				end
+
+				local function initialize()
+					local h, s, v = defaultColor:ToHSV()
+					colorpickerElement["HueCursor"]["Position"] = UDim2.new(0, 1, 0, ((1-h) * colorpickerElement["Hue"].AbsoluteSize.Y))
+					colorpickerElement["SaturationCursor"]["Position"] = UDim2.new(0, s * colorpickerElement["Saturation"].AbsoluteSize.X, 0, (1 - v) * colorpickerElement["Saturation"].AbsoluteSize.Y)
+					colorpickerElement["TransparencyCursor"]["Position"] = UDim2.new(0, (1 - defaultTransparency) * colorpickerElement["Transparency"].AbsoluteSize.X, 0, 1)
+					colorpickerElement["SaturationGradient"]["Color"] = ColorSequence.new{
+						ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+						ColorSequenceKeypoint.new(1, Color3.fromHSV(h, 1, 1))
+					}
+					colorpickerElement["ColorButton"]["BackgroundColor3"] = defaultColor
+					colorpickerElement["ColorButton"]["BackgroundTransparency"] = defaultTransparency
+					colorpickerElement["Transparency"]["Transparency"] = defaultTransparency
+					callback({color = defaultColor, transparency = defaultTransparency})
+				end
+
+				table.insert(connections, colorpickerElement["ColorButton"].MouseButton1Click:Connect(function()
+					isOpen = not isOpen
+					colorpickerElement["PickerFrame"]["Visible"] = isOpen
+					colorpickerElement["Colorpicker"]["ZIndex"] = isOpen and (baseZIndex + 2) or baseZIndex
+				end))
+
+				table.insert(connections, colorpickerElement["Hue"].InputBegan:Connect(function(input)
+					if input.UserInputType == Enum.UserInputType.MouseButton1 then
+						updateHue(input)
+						local connection
+						connection = UserInputService.InputChanged:Connect(function(inputChanged)
+							if inputChanged.UserInputType == Enum.UserInputType.MouseMovement then
+								updateHue(inputChanged)
+							end
+						end)
+						table.insert(connections, UserInputService.InputEnded:Connect(function(inputEnded)
+							if inputEnded.UserInputType == Enum.UserInputType.MouseButton1 then
+								connection:Disconnect()
+							end
+						end))
+					end
+				end))
+
+				table.insert(connections, colorpickerElement["Saturation"].InputBegan:Connect(function(input)
+					if input.UserInputType == Enum.UserInputType.MouseButton1 then
+						updateSaturationValue(input)
+						local connection
+						connection = UserInputService.InputChanged:Connect(function(inputChanged)
+							if inputChanged.UserInputType == Enum.UserInputType.MouseMovement then
+								updateSaturationValue(inputChanged)
+							end
+						end)
+						table.insert(connections, UserInputService.InputEnded:Connect(function(inputEnded)
+							if inputEnded.UserInputType == Enum.UserInputType.MouseButton1 then
+								connection:Disconnect()
+							end
+						end))
+					end
+				end))
+
+				table.insert(connections, colorpickerElement["Transparency"].InputBegan:Connect(function(input)
+					if input.UserInputType == Enum.UserInputType.MouseButton1 then
+						updateTransparency(input)
+						local connection
+						connection = UserInputService.InputChanged:Connect(function(inputChanged)
+							if inputChanged.UserInputType == Enum.UserInputType.MouseMovement then
+								updateTransparency(inputChanged)
+							end
+						end)
+						table.insert(connections, UserInputService.InputEnded:Connect(function(inputEnded)
+							if inputEnded.UserInputType == Enum.UserInputType.MouseButton1 then
+								connection:Disconnect()
+							end
+						end))
+					end
+				end))
+
+				function colorpickerElement:SetColor(color, transparency)
+					local newColor, newTransparency
+					if typeof(color) == "Color3" then
+						newColor = color
+						newTransparency = (type(transparency) == "number" and transparency >= 0 and transparency <= 1) and transparency or currentTransparency
+					elseif type(color) == "table" and #color >= 1 and typeof(color[1]) == "Color3" then
+						newColor = color[1]
+						newTransparency = (type(color[2]) == "number" and color[2] >= 0 and color[2] <= 1) and color[2] or currentTransparency
+					else
+						warn("[roskeet] Invalid color for colorpicker: '" .. name .. "'. Color must be a Color3 value or a table {Color3, transparency}")
+						return
+					end
+
+					currentColor = newColor
+					currentTransparency = newTransparency
+					local h, s, v = currentColor:ToHSV()
+					colorpickerElement["HueCursor"]["Position"] = UDim2.new(0, 1, 0, (1-h) * colorpickerElement["Hue"].AbsoluteSize.Y)
+					colorpickerElement["SaturationCursor"]["Position"] = UDim2.new(0, s * colorpickerElement["Saturation"].AbsoluteSize.X, 0, (1 - v) * colorpickerElement["Saturation"].AbsoluteSize.Y)
+					colorpickerElement["TransparencyCursor"]["Position"] = UDim2.new(0, (1 - currentTransparency) * colorpickerElement["Transparency"].AbsoluteSize.X, 0, 1)
+					updateColor()
+				end
+
+				function colorpickerElement:GetColor()
+					return {color = currentColor, transparency = currentTransparency}
+				end
+
+				function colorpickerElement:Destroy()
+					for _, connection in ipairs(connections) do
+						connection:Disconnect()
+					end
+					Library[name] = nil
+					colorpickerElement["Colorpicker"]:Destroy()
+				end
+
+				initialize()
+				Library[name] = colorpickerElement
+
+				return colorpickerElement
+			end
+
 			function section:newSelectbox(params)
 				local selectboxElement = {}
 
@@ -1775,6 +2159,7 @@ function Library:newWindow()
 				function selectboxElement:GetValue()
 					return selectedValues
 				end
+				
 
 				Library[name] = selectboxElement
 
@@ -1786,7 +2171,6 @@ function Library:newWindow()
 			function section:newSearchbox(params)
 				local searchboxElement = {}
 
-				-- Validate parameters
 				assert(type(params) == "table", "[roskeet] newSearchbox requires a table as its parameter")
 
 				local name = params.Name or "Searchbox"
@@ -1794,25 +2178,21 @@ function Library:newWindow()
 				local defaultValue = params.Default or ""
 				local callback = params.Callback or function() end
 
-				-- Validate name
 				if type(name) ~= "string" or name == "" then
 					name = "Searchbox"
 					warn("[roskeet] Invalid or missing searchbox name. Using default name: '" .. name .. "'")
 				end
 
-				-- Validate options
 				assert(type(options) == "table" and #options > 0, "[roskeet] Invalid or empty options table for searchbox: '" .. name .. "'")
 				for i, option in ipairs(options) do
 					assert(type(option) == "string" and option ~= "", "[roskeet] Invalid option at index " .. i .. " for searchbox: '" .. name .. "'")
 				end
 
-				-- Validate default value
 				if type(defaultValue) ~= "string" then
 					defaultValue = ""
 					warn("[roskeet] Invalid default value for searchbox: '" .. name .. "'. Using empty string")
 				end
 
-				-- Validate callback
 				assert(type(callback) == "function", "[roskeet] Invalid or missing callback function for searchbox: '" .. name .. "'")
 
 				local selectedValue = defaultValue
@@ -1820,7 +2200,6 @@ function Library:newWindow()
 				local baseZIndex = 3
 				local variantButtons = {}
 
-				-- Create searchbox frame
 				searchboxElement["SearchList"] = Instance.new("Frame", section["ElementHandler"])
 				searchboxElement["SearchList"]["BorderSizePixel"] = 0
 				searchboxElement["SearchList"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
@@ -1830,7 +2209,6 @@ function Library:newWindow()
 				searchboxElement["SearchList"]["BackgroundTransparency"] = 1
 				searchboxElement["SearchList"]["ZIndex"] = baseZIndex
 
-				-- Create title label
 				searchboxElement["TextLabel"] = Instance.new("TextLabel", searchboxElement["SearchList"])
 				searchboxElement["TextLabel"]["BorderSizePixel"] = 0
 				searchboxElement["TextLabel"]["TextSize"] = 11
@@ -1844,7 +2222,6 @@ function Library:newWindow()
 				searchboxElement["TextLabel"]["Text"] = name
 				searchboxElement["TextLabel"]["Position"] = UDim2.new(0, 20, 0, 2)
 
-				-- Create search handler frame
 				searchboxElement["SearchHandler"] = Instance.new("Frame", searchboxElement["SearchList"])
 				searchboxElement["SearchHandler"]["BackgroundColor3"] = Color3.fromRGB(36, 36, 36)
 				searchboxElement["SearchHandler"]["Size"] = UDim2.new(0, 156, 0, 18)
@@ -1852,7 +2229,6 @@ function Library:newWindow()
 				searchboxElement["SearchHandler"]["BorderColor3"] = Color3.fromRGB(13, 13, 13)
 				searchboxElement["SearchHandler"]["Name"] = "SearchHandler"
 
-				-- Create outline frame
 				searchboxElement["Outline"] = Instance.new("Frame", searchboxElement["SearchHandler"])
 				searchboxElement["Outline"]["BorderSizePixel"] = 0
 				searchboxElement["Outline"]["BackgroundColor3"] = Color3.fromRGB(51, 51, 51)
@@ -1861,7 +2237,6 @@ function Library:newWindow()
 				searchboxElement["Outline"]["Name"] = "Outline"
 				searchboxElement["Outline"]["LayoutOrder"] = -999
 
-				-- Create text box
 				searchboxElement["TextBox"] = Instance.new("TextBox", searchboxElement["Outline"])
 				searchboxElement["TextBox"]["CursorPosition"] = -1
 				searchboxElement["TextBox"]["TextXAlignment"] = Enum.TextXAlignment.Left
@@ -1879,7 +2254,6 @@ function Library:newWindow()
 				searchboxElement["TextBox"]["Text"] = selectedValue
 				searchboxElement["TextBox"]["BackgroundTransparency"] = 1
 
-				-- Create background frame
 				searchboxElement["Background"] = Instance.new("Frame", searchboxElement["Outline"])
 				searchboxElement["Background"]["BackgroundColor3"] = Color3.fromRGB(26, 26, 26)
 				searchboxElement["Background"]["Size"] = UDim2.new(0, 152, 0, 14)
@@ -1887,7 +2261,6 @@ function Library:newWindow()
 				searchboxElement["Background"]["BorderColor3"] = Color3.fromRGB(17, 17, 17)
 				searchboxElement["Background"]["Name"] = "Background"
 
-				-- Create scrolling frame
 				searchboxElement["ScrollingFrame"] = Instance.new("ScrollingFrame", searchboxElement["SearchList"])
 				searchboxElement["ScrollingFrame"]["Active"] = true
 				searchboxElement["ScrollingFrame"]["TopImage"] = [[rbxassetid://17256458146]]
@@ -1902,20 +2275,16 @@ function Library:newWindow()
 				searchboxElement["ScrollingFrame"]["Visible"] = false
 				searchboxElement["ScrollingFrame"]["ZIndex"] = baseZIndex + 1
 
-				-- Add UIListLayout to scrolling frame
 				searchboxElement["UIListLayout"] = Instance.new("UIListLayout", searchboxElement["ScrollingFrame"])
 				searchboxElement["UIListLayout"]["HorizontalAlignment"] = Enum.HorizontalAlignment.Center
 				searchboxElement["UIListLayout"]["SortOrder"] = Enum.SortOrder.LayoutOrder
 
-				-- Function to update variant list
 				local function updateVariantList(filter)
-					-- Clear existing buttons
 					for _, button in pairs(variantButtons) do
 						button:Destroy()
 					end
 					variantButtons = {}
 
-					-- Add buttons for matching variants
 					local filteredOptions = {}
 					if filter == "" then
 						filteredOptions = options
@@ -1964,14 +2333,11 @@ function Library:newWindow()
 						end))
 					end
 
-					-- Update CanvasSize
 					searchboxElement["ScrollingFrame"].CanvasSize = UDim2.new(0, 0, 0, #filteredOptions * 18 + (#filteredOptions > 0 and 2 or 0))
 				end
 
-				-- Initialize variant list
 				updateVariantList("")
 
-				-- Toggle scrolling frame visibility
 				table.insert(connections, searchboxElement["TextBox"].FocusLost:Connect(function(enterPressed)
 					if enterPressed then
 						local firstOption = nil
@@ -2028,14 +2394,12 @@ function Library:newWindow()
 					updateVariantList(searchboxElement["TextBox"].Text)
 				end))
 
-				-- Update variant list on text change
 				table.insert(connections, searchboxElement["TextBox"].Changed:Connect(function(property)
 					if property == "Text" then
 						updateVariantList(searchboxElement["TextBox"].Text)
 					end
 				end))
 
-				-- SetValue function
 				function searchboxElement:SetValue(value)
 					if type(value) == "string" and (value == "" or table.find(options, value)) then
 						selectedValue = value
@@ -2051,7 +2415,6 @@ function Library:newWindow()
 					end
 				end
 
-				-- Destroy function to clean up
 				function searchboxElement:Destroy()
 					for _, connection in ipairs(connections) do
 						connection:Disconnect()
@@ -2059,18 +2422,145 @@ function Library:newWindow()
 					Library[name] = nil
 					searchboxElement.SearchList:Destroy()
 				end
-				
+
 				function searchboxElement:GetValue()
 					return selectedValue
 				end
-				
-				-- Store searchbox element in Library
+
 				Library[name] = searchboxElement
 
-				-- Initialize callback
 				callback(selectedValue)
 
 				return searchboxElement
+			end
+
+			function section:newTextbox(params)
+				local TextboxElement = {}
+
+				assert(type(params) == "table", "[roskeet] newTextbox requires a table as its parameter")
+
+				local name = params.Name or "Textbox"
+				local defaultValue = params.Default or ""
+				local callback = params.Callback or function() end
+
+				if type(name) ~= "string" or name == "" then
+					name = "Textbox"
+					warn("[roskeet] Invalid or missing Textbox name. Using default name: '" .. name .. "'")
+				end
+
+				if type(defaultValue) ~= "string" then
+					defaultValue = ""
+					warn("[roskeet] Invalid default value for Textbox: '" .. name .. "'. Using empty string")
+				end
+
+				assert(type(callback) == "function", "[roskeet] Invalid or missing callback function for Textbox: '" .. name .. "'")
+
+				local selectedValue = defaultValue
+				local connections = {}
+				local baseZIndex = 3
+
+				TextboxElement["Frame"] = Instance.new("Frame", section["ElementHandler"])
+				TextboxElement["Frame"]["BorderSizePixel"] = 0
+				TextboxElement["Frame"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
+				TextboxElement["Frame"]["Size"] = UDim2.new(1, -40, 0, 38)
+				TextboxElement["Frame"]["BorderColor3"] = Color3.fromRGB(0, 0, 0)
+				TextboxElement["Frame"]["Name"] = "TextboxFrame"
+				TextboxElement["Frame"]["BackgroundTransparency"] = 1
+				TextboxElement["Frame"]["ZIndex"] = baseZIndex
+
+				TextboxElement["TextLabel"] = Instance.new("TextLabel", TextboxElement["Frame"])
+				TextboxElement["TextLabel"]["BorderSizePixel"] = 0
+				TextboxElement["TextLabel"]["TextSize"] = 11
+				TextboxElement["TextLabel"]["TextXAlignment"] = Enum.TextXAlignment.Left
+				TextboxElement["TextLabel"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
+				TextboxElement["TextLabel"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+				TextboxElement["TextLabel"]["TextColor3"] = Color3.fromRGB(255, 255, 255)
+				TextboxElement["TextLabel"]["BackgroundTransparency"] = 1
+				TextboxElement["TextLabel"]["Size"] = UDim2.new(0, 168, 0, 14)
+				TextboxElement["TextLabel"]["BorderColor3"] = Color3.fromRGB(0, 0, 0)
+				TextboxElement["TextLabel"]["Text"] = name
+				TextboxElement["TextLabel"]["Position"] = UDim2.new(0, 20, 0, 2)
+
+				TextboxElement["SearchHandler"] = Instance.new("Frame", TextboxElement["Frame"])
+				TextboxElement["SearchHandler"]["BackgroundColor3"] = Color3.fromRGB(36, 36, 36)
+				TextboxElement["SearchHandler"]["Size"] = UDim2.new(0, 156, 0, 18)
+				TextboxElement["SearchHandler"]["Position"] = UDim2.new(0, 20, 0, 17)
+				TextboxElement["SearchHandler"]["BorderColor3"] = Color3.fromRGB(13, 13, 13)
+				TextboxElement["SearchHandler"]["Name"] = "SearchHandler"
+
+				TextboxElement["Outline"] = Instance.new("Frame", TextboxElement["SearchHandler"])
+				TextboxElement["Outline"]["BorderSizePixel"] = 0
+				TextboxElement["Outline"]["BackgroundColor3"] = Color3.fromRGB(51, 51, 51)
+				TextboxElement["Outline"]["Size"] = UDim2.new(0, 156, 0, 18)
+				TextboxElement["Outline"]["BorderColor3"] = Color3.fromRGB(0, 0, 0)
+				TextboxElement["Outline"]["Name"] = "Outline"
+				TextboxElement["Outline"]["LayoutOrder"] = -999
+
+				TextboxElement["TextBox"] = Instance.new("TextBox", TextboxElement["Outline"])
+				TextboxElement["TextBox"]["CursorPosition"] = -1
+				TextboxElement["TextBox"]["TextXAlignment"] = Enum.TextXAlignment.Left
+				TextboxElement["TextBox"]["PlaceholderColor3"] = Color3.fromRGB(255, 255, 255)
+				TextboxElement["TextBox"]["ZIndex"] = baseZIndex + 1
+				TextboxElement["TextBox"]["BorderSizePixel"] = 0
+				TextboxElement["TextBox"]["TextSize"] = 11
+				TextboxElement["TextBox"]["TextColor3"] = Color3.fromRGB(255, 255, 255)
+				TextboxElement["TextBox"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255)
+				TextboxElement["TextBox"]["FontFace"] = Font.new([[rbxasset://fonts/families/Arial.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+				TextboxElement["TextBox"]["PlaceholderText"] = "Enter text..."
+				TextboxElement["TextBox"]["Size"] = UDim2.new(0, 144, 0, 12)
+				TextboxElement["TextBox"]["Position"] = UDim2.new(0, 6, 0, 4)
+				TextboxElement["TextBox"]["BorderColor3"] = Color3.fromRGB(0, 0, 0)
+				TextboxElement["TextBox"]["Text"] = selectedValue
+				TextboxElement["TextBox"]["BackgroundTransparency"] = 1
+
+				TextboxElement["Background"] = Instance.new("Frame", TextboxElement["Outline"])
+				TextboxElement["Background"]["BackgroundColor3"] = Color3.fromRGB(26, 26, 26)
+				TextboxElement["Background"]["Size"] = UDim2.new(0, 152, 0, 14)
+				TextboxElement["Background"]["Position"] = UDim2.new(0, 2, 0, 2)
+				TextboxElement["Background"]["BorderColor3"] = Color3.fromRGB(17, 17, 17)
+				TextboxElement["Background"]["Name"] = "Background"
+
+				table.insert(connections, TextboxElement["TextBox"].Changed:Connect(function(property)
+					if property == "Text" then
+						selectedValue = TextboxElement["TextBox"].Text
+						callback(selectedValue)
+					end
+				end))
+
+				table.insert(connections, TextboxElement["TextBox"].FocusLost:Connect(function(enterPressed)
+					if enterPressed then
+						selectedValue = TextboxElement["TextBox"].Text
+						callback(selectedValue)
+					end
+				end))
+
+				function TextboxElement:SetValue(value)
+					if type(value) == "string" then
+						selectedValue = value
+						TextboxElement["TextBox"].Text = value
+						callback(selectedValue)
+					else
+						warn("[roskeet] Invalid value for Textbox: '" .. name .. "'. Value must be a string")
+					end
+				end
+
+				function TextboxElement:Destroy()
+					for _, connection in ipairs(connections) do
+						connection:Disconnect()
+					end
+					Library[name] = nil
+					TextboxElement.Frame:Destroy()
+				end
+
+				function TextboxElement:GetValue()
+					return selectedValue
+				end
+
+				Library[name] = TextboxElement
+
+				callback(selectedValue)
+
+				return TextboxElement
 			end
 			
 			return section
@@ -2079,7 +2569,7 @@ function Library:newWindow()
 		if window.CurrentTab == nil then
 			window.CurrentTab = Library[name]
 		end
-		
+
 		return tab
 	end
 	return window
