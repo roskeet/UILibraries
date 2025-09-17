@@ -365,6 +365,13 @@ function Library:newWindow()
 					end
 				end
 			end
+			if params.Side == "Right" and sectionCount.Right > 1 then
+				for _, v in side:GetChildren() do
+					if v:IsA("Frame") then
+						v.Size = UDim2.new(1, 0, 0, (520/currCount)-20)
+					end
+				end
+			end
 
 			section["SectionBase"] = Instance.new("Frame", side);
 			section["SectionBase"]["ZIndex"] = 2;
