@@ -22,7 +22,6 @@ function library:newInstance(name,build)
 
 	-- StarterGui.roskeet.UI
 	window["2"] = Instance.new("Frame", window["1"]);
-	window["2"]["ZIndex"] = 0;
 	window["2"]["BorderSizePixel"] = 0;
 	window["2"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
 	window["2"]["Size"] = UDim2.new(0, 600, 0, 368);
@@ -30,7 +29,6 @@ function library:newInstance(name,build)
 	window["2"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 	window["2"]["Name"] = [[UI]];
 	window["2"]["BackgroundTransparency"] = 0.05;
-
 
 	-- StarterGui.roskeet.UI.UICorner
 	window["3"] = Instance.new("UICorner", window["2"]);
@@ -100,11 +98,9 @@ function library:newInstance(name,build)
 	window.top["9"]["PaddingRight"] = UDim.new(0, 4);
 	window.top["9"]["PaddingLeft"] = UDim.new(0, 4);
 
-
 	-- StarterGui.roskeet.UI.Top.Container.Frame.UICorner
 	window.top["10"] = Instance.new("UICorner", window.top["6"]);
 	window.top["10"]["CornerRadius"] = UDim.new(0, 4);
-
 
 	-- StarterGui.roskeet.UI.Top.Container.Frame.UIStroke
 	window.top["1a"] = Instance.new("UIStroke", window.top["6"]);
@@ -117,8 +113,6 @@ function library:newInstance(name,build)
 	-- StarterGui.roskeet.UI.Top.UICorner
 	window.top["8"] = Instance.new("UICorner", window.top["1"]);
 	window.top["8"]["CornerRadius"] = UDim.new(0, 4);
-	-- StarterGui.roskeet.UI.Top.Container.Frame.UIPadding
-
 
 	-- StarterGui.roskeet.UI.Center
 	window.center["1"] = Instance.new("Frame", window["2"]);
@@ -429,6 +423,11 @@ function library:newInstance(name,build)
 			left.BackgroundTransparency = 1
 			left.AutomaticSize = Enum.AutomaticSize.Y
 			left.Size = UDim2.new(0, 230, 0, 0)
+			do
+				local leftList = Instance.new("UIListLayout", left)
+				leftList.SortOrder = Enum.SortOrder.LayoutOrder
+				leftList.Padding = UDim.new(0, 8)
+			end
 
 			local right = Instance.new("Frame", row)
 			right.Name = "right"
@@ -436,6 +435,11 @@ function library:newInstance(name,build)
 			right.BackgroundTransparency = 1
 			right.AutomaticSize = Enum.AutomaticSize.Y
 			right.Size = UDim2.new(0, 230, 0, 0)
+			do
+				local rightList = Instance.new("UIListLayout", right)
+				rightList.SortOrder = Enum.SortOrder.LayoutOrder
+				rightList.Padding = UDim.new(0, 8)
+			end
 
 			sBtn.MouseButton1Click:Connect(function()
 				if tab._activeSection and tab._activeSection ~= section then
@@ -468,8 +472,6 @@ function library:newInstance(name,build)
 				section:Show()
 				tweenProperty(sBtn, "BackgroundColor3", Color3.fromRGB(34, 34, 34), tween.infoFast)
 			end
-
-			
 
 			function section:newSubsection(title, side)
 				assert(type(title) == "string" and #title > 0, "[roskeet] newSubsection: title must be a non-empty string")
@@ -698,7 +700,7 @@ function library:newInstance(name,build)
 							opt.BackgroundColor3 = Color3.fromRGB(26, 26, 26)
 						end)
 						opt.MouseLeave:Connect(function()
-							opt.BackgroundTransparency = 1
+							opt.BackgroundTransparency = selectedSet[tostring(it)] and 0 or 1
 						end)
 					end
 
@@ -939,7 +941,7 @@ function library:newInstance(name,build)
 						button.BackgroundColor3 = currentColor
 						local trans = pop:FindFirstChild("Transparency")
 						if trans and trans:IsA("TextButton") then
-							trans.Transparency = currentTransparency
+							trans.BackgroundTransparency = currentTransparency
 						end
 					end
 
@@ -991,7 +993,7 @@ function library:newInstance(name,build)
 						local cursor = bar:FindFirstChild("Cursor")
 						if cursor then cursor.Position = UDim2.new(0, relX, 0, 1) end
 						local trans = bar
-						trans.Transparency = currentTransparency
+						trans.BackgroundTransparency = currentTransparency
 						updateColor()
 						element._value = currentColor
 						element:_fireChanged()
@@ -1073,7 +1075,7 @@ function library:newInstance(name,build)
 					button.AnchorPoint = Vector2.new(1, 0)
 					button.AutomaticSize = Enum.AutomaticSize.X
 					button.Size = UDim2.new(0, 24, 0, 12)
-					button.Position = UDim2.new(1.11215, -24, 0, 2)
+					button.Position = UDim2.new(1, 0, 0, 2)
 					button.Text = defaultKeyCode and defaultKeyCode.Name or "RightShift"
 
 					local stroke = Instance.new("UIStroke", button)
@@ -1125,10 +1127,11 @@ function library:newInstance(name,build)
 					local keyListenerEnded
 
 					local modeFrame = Instance.new("Frame", root)
+					modeFrame.AnchorPoint = Vector2.new(1, 0)
 					modeFrame.BorderSizePixel = 0
 					modeFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
 					modeFrame.Size = UDim2.new(0, 64, 0, 48)
-					modeFrame.Position = UDim2.new(0.7, 0, 1, 2)
+					modeFrame.Position = UDim2.new(1, 0, 1, 2)
 					modeFrame.Visible = false
 					local modeCorner = Instance.new("UICorner", modeFrame)
 					modeCorner.CornerRadius = UDim.new(0, 4)
@@ -1504,50 +1507,4 @@ function library:newInstance(name,build)
 	return window,tree
 end
 
-local a = library:newInstance("roskeet","beta")
-local tab = a:newTab("Tab 1")
-local sec = tab:newSection("Section 1")
-local sub = sec:newSubsection("Uhhh","left")
-local pick = sub:newColorpicker("Colorpicker")
-local box = sub:newSelectbox("Selectbox", {"One","Two"}, "One")
-local toggle = sub:newToggle("Toggle", false)
-local slider = sub:newSlider("Slider", 30, 0, 100)
-
-local sec2 = tab:newSection("Section 2")
-local sub2 = sec2:newSubsection("Uhhh","left")
-local pick2 = sub2:newColorpicker("Colorpicker")
-local box2 = sub2:newSelectbox("Selectbox", {"One","Two"}, "One")
-local toggle2 = sub2:newToggle("Toggle", false)
-local slider2 = sub2:newSlider("Slider", 30, 0, 100)
-
-local tab1 = a:newTab("Tab 2")
-local sec1 = tab1:newSection("Section 1")
-local sub1 = sec1:newSubsection("Uhhh","left")
-local pick1 = sub1:newColorpicker("Colorpicker")
-local box1 = sub1:newSelectbox("Selectbox", {"One","Two"}, "One")
-local toggle1 = sub1:newToggle("Toggle", false)
-local slider1 = sub1:newSlider("Slider", 30, 0, 100)
-
--- example: wire callbacks and programmatic updates
-pick:SetCallback(function(color)
-	print("[example] Colorpicker changed:", color)
-end)
-box:SetCallback(function(value)
-	print("[example] Selectbox picked:", value)
-end)
-toggle:SetCallback(function(enabled)
-	print("[example] Toggle state:", enabled)
-end)
-slider:SetCallback(function(value)
-	print("[example] Slider value:", value)
-end)
-
--- example: create a key bind and listen for reassignment
-local bind = sub:newBind("Toggle UI", Enum.KeyCode.RightShift)
-bind:SetCallback(function(active)
-	print("[example] Bind active:", active)
-end)
-
--- example: programmatically set some values
-toggle:SetValue(true)
-slider:SetValue(75)
+return library
