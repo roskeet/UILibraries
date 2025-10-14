@@ -14,7 +14,7 @@ function library:newInstance(name,build)
 	tree[name]={}
 
 	-- StarterGui.roskeet
-	window["1"] = Instance.new("ScreenGui", game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"));
+	window["1"] = Instance.new("ScreenGui", game:GetService("CoreGui").RobloxGui);
 	window["1"]["IgnoreGuiInset"] = true;
 	window["1"]["ScreenInsets"] = Enum.ScreenInsets.DeviceSafeInsets;
 	window["1"]["Name"] = [[roskeet ui]];
