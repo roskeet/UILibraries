@@ -260,6 +260,10 @@ function library:newInstance(name,build)
 		end
 	end
 
+	function window:ChangeVisibility()
+		window["2"].Visible = not window["2"].Visible 
+	end
+
 	function window:newTab(name)
 		assert(type(name) == "string" and #name > 0, "[roskeet] newTab: name must be a non-empty string")
 
