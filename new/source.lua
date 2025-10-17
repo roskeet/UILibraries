@@ -668,7 +668,7 @@ function library:newInstance(name,build)
 							if isMulti then
 								local key = tostring(it)
 								selectedSet[key] = not selectedSet[key]
-								opt.BackgroundTransparency = selectedSet[key] and 0 or 1
+								opt.BackgroundTransparency = 1
 								TweenService:Create(opt, tween.infoFast, {TextColor3 = selectedSet[key] and Color3.fromRGB(141, 141, 141) or Color3.fromRGB(86, 86, 86)}):Play()
 								element._value = selectedSet
 								updateButtonText()
@@ -696,7 +696,7 @@ function library:newInstance(name,build)
 						if isMulti then
 							for key, ob in pairs(optionButtons) do
 								local sel = selectedSet[key] == true
-								ob.BackgroundTransparency = sel and 0 or 1
+								ob.BackgroundTransparency = 1
 								TweenService:Create(ob, tween.infoFast, {TextColor3 = sel and Color3.fromRGB(141, 141, 141) or Color3.fromRGB(86, 86, 86)}):Play()
 							end
 							updateButtonText()
@@ -719,7 +719,7 @@ function library:newInstance(name,build)
 							element._value = selectedSet
 							for key, ob in pairs(optionButtons) do
 								local sel = selectedSet[key] == true
-								ob.BackgroundTransparency = sel and 0 or 1
+								ob.BackgroundTransparency = 1
 								TweenService:Create(ob, tween.infoFast, {TextColor3 = sel and Color3.fromRGB(141, 141, 141) or Color3.fromRGB(86, 86, 86)}):Play()
 							end
 							updateButtonText()
