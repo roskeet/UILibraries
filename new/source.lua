@@ -29,6 +29,7 @@ function library:newInstance(name,build)
 	window["2"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 	window["2"]["Name"] = [[UI]];
 	window["2"]["BackgroundTransparency"] = 0.05;
+	window["2"]["Visible"] = false
 
 	-- StarterGui.roskeet.UI.UICorner
 	window["3"] = Instance.new("UICorner", window["2"]);
