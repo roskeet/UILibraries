@@ -913,7 +913,7 @@ function library:newInstance(name,build)
 					hueCursorStroke.Color = Color3.fromRGB(14, 14, 14)
 
 					button.Text = ""
-					local element = attachCommonElementAPI({_ui = {root = root, button = button, popover = pop}, _value = defaultColor, _active = false, type = "colorpicker"})
+					local element = attachCommonElementAPI({_ui = {root = root, button = button, popover = pop}, _value = {Color = defaultColor, Transparency = 0}, _active = false, type = "colorpicker"})
 					if type(onChange) == "function" then element:SetCallback(onChange) end
 
 					local currentColor = defaultColor
@@ -950,6 +950,11 @@ function library:newInstance(name,build)
 						end
 					end
 
+					local function fireColorChange()
+						element._value = {Color = currentColor, Transparency = currentTransparency}
+						element:_fireChanged()
+					end
+
 					local function updateHue(input)
 						local hueBtn = pop:FindFirstChild("Hue")
 						if not hueBtn then return end
@@ -963,8 +968,7 @@ function library:newInstance(name,build)
 						local cursor = hueBtn:FindFirstChild("Cursor")
 						if cursor then cursor.Position = UDim2.new(0, 1, 0, relY) end
 						updateColor()
-						element._value = currentColor
-						element:_fireChanged()
+						fireColorChange()
 					end
 
 					local function updateSaturationValue(input)
@@ -983,8 +987,7 @@ function library:newInstance(name,build)
 						local cursor = satBtn:FindFirstChild("Cursor")
 						if cursor then cursor.Position = UDim2.new(0, relX, 0, relY) end
 						updateColor()
-						element._value = currentColor
-						element:_fireChanged()
+						fireColorChange()
 					end
 
 					local function updateTransparency(input)
@@ -1000,8 +1003,7 @@ function library:newInstance(name,build)
 						local trans = bar
 						trans.BackgroundTransparency = currentTransparency
 						updateColor()
-						element._value = currentColor
-						element:_fireChanged()
+						fireColorChange()
 					end
 
 					button.MouseButton1Click:Connect(function()
@@ -1044,10 +1046,24 @@ function library:newInstance(name,build)
 					local satBtn = pop:FindFirstChild("Saturation"); if satBtn then connectDrag(satBtn, updateSaturationValue) end
 					local trBar = pop:FindFirstChild("Transparency"); if trBar then connectDrag(trBar, updateTransparency) end
 
-					function element:SetValue(color)
-						self._value = color
-						currentColor = color
-						button.BackgroundColor3 = color
+					function element:SetValue(value)
+						if type(value) == "table" and value.Color and value.Transparency then
+							-- Table format: {Color = Color3, Transparency = number}
+							self._value = value
+							currentColor = value.Color
+							currentTransparency = value.Transparency
+						elseif typeof(value) == "Color3" then
+							-- Backward compatibility: Color3 only
+							self._value = {Color = value, Transparency = 0}
+							currentColor = value
+							currentTransparency = 0
+						else
+							-- Default fallback
+							self._value = {Color = defaultColor, Transparency = 0}
+							currentColor = defaultColor
+							currentTransparency = 0
+						end
+						button.BackgroundColor3 = currentColor
 						updateColor()
 						self:_fireChanged()
 					end
