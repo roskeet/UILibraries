@@ -13,14 +13,12 @@ function library:newInstance(name,build)
 	window.CurrentTab = nil
 	tree[name]={}
 
-	-- StarterGui.roskeet
 	window["1"] = Instance.new("ScreenGui", game:GetService("CoreGui").RobloxGui);
 	window["1"]["IgnoreGuiInset"] = true;
 	window["1"]["ScreenInsets"] = Enum.ScreenInsets.DeviceSafeInsets;
 	window["1"]["Name"] = [[roskeet ui]];
 	window["1"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling;
 
-	-- StarterGui.roskeet.UI
 	window["2"] = Instance.new("Frame", window["1"]);
 	window["2"]["BorderSizePixel"] = 0;
 	window["2"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
@@ -31,17 +29,14 @@ function library:newInstance(name,build)
 	window["2"]["BackgroundTransparency"] = 0.05;
 	window["2"]["Visible"] = false
 
-	-- StarterGui.roskeet.UI.UICorner
 	window["3"] = Instance.new("UICorner", window["2"]);
 	window["3"]["CornerRadius"] = UDim.new(0, 4);
 
-	-- StarterGui.roskeet.UI.UIStroke
 	window["4"] = Instance.new("UIStroke", window["2"]);
 	window["4"]["Color"] = Color3.fromRGB(61, 61, 61);
 
 	window["5"]= Instance.new("UIScale", window["1"]);
 
-	-- StarterGui.roskeet.UI.Top
 	window.top["1"] = Instance.new("Frame", window["2"]);
 	window.top["1"]["BorderSizePixel"] = 0;
 	window.top["1"]["BackgroundColor3"] = Color3.fromRGB(24, 24, 24);
@@ -51,13 +46,11 @@ function library:newInstance(name,build)
 	window.top["1"]["Name"] = [[Top]];
 	window.top["1"]["BackgroundTransparency"] = 0.1;
 
-	-- StarterGui.roskeet.UI.Top.UIListLayout
 	window.top["2"] = Instance.new("UIListLayout", window.top["1"]);
 	window.top["2"]["VerticalAlignment"] = Enum.VerticalAlignment.Center;
 	window.top["2"]["SortOrder"] = Enum.SortOrder.LayoutOrder;
 	window.top["2"]["FillDirection"] = Enum.FillDirection.Horizontal;
 
-	-- StarterGui.roskeet.UI.Top.TextLabel
 	window.top["3"] = Instance.new("TextLabel", window.top["1"]);
 	window.top["3"]["BorderSizePixel"] = 0;
 	window.top["3"]["TextSize"] = 14;
@@ -71,10 +64,8 @@ function library:newInstance(name,build)
 	window.top["3"]["LayoutOrder"] = -1;
 	window.top["3"]["AutomaticSize"] = Enum.AutomaticSize.X;
 
-	-- StarterGui.roskeet.UI.Top.TextLabel.UIPadding
 	window.top["4"] = Instance.new("UIPadding", window.top["3"]);
 
-	-- StarterGui.roskeet.UI.Top.Container
 	window.top["5"] = Instance.new("Frame", window.top["1"]);
 	window.top["5"]["BorderSizePixel"] = 0;
 	window.top["5"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
@@ -85,7 +76,6 @@ function library:newInstance(name,build)
 	window.top["5"]["Name"] = [[Container]];
 	window.top["5"]["BackgroundTransparency"] = 1;
 
-	-- StarterGui.roskeet.UI.Top.Container.Frame
 	window.top["6"] = Instance.new("Frame", window.top["5"]);
 	window.top["6"]["BorderSizePixel"] = 0;
 	window.top["6"]["BackgroundColor3"] = Color3.fromRGB(24, 24, 24);
@@ -99,23 +89,18 @@ function library:newInstance(name,build)
 	window.top["9"]["PaddingRight"] = UDim.new(0, 4);
 	window.top["9"]["PaddingLeft"] = UDim.new(0, 4);
 
-	-- StarterGui.roskeet.UI.Top.Container.Frame.UICorner
 	window.top["10"] = Instance.new("UICorner", window.top["6"]);
 	window.top["10"]["CornerRadius"] = UDim.new(0, 4);
 
-	-- StarterGui.roskeet.UI.Top.Container.Frame.UIStroke
 	window.top["1a"] = Instance.new("UIStroke", window.top["6"]);
 	window.top["1a"]["Color"] = Color3.fromRGB(62, 62, 62);
 
-	-- StarterGui.roskeet.UI.Top.UIStroke
 	window.top["7"] = Instance.new("UIStroke", window.top["1"]);
 	window.top["7"]["Color"] = Color3.fromRGB(61, 61, 61);
 
-	-- StarterGui.roskeet.UI.Top.UICorner
 	window.top["8"] = Instance.new("UICorner", window.top["1"]);
 	window.top["8"]["CornerRadius"] = UDim.new(0, 4);
 
-	-- StarterGui.roskeet.UI.Center
 	window.center["1"] = Instance.new("Frame", window["2"]);
 	window.center["1"]["BorderSizePixel"] = 0;
 	window.center["1"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
@@ -125,7 +110,6 @@ function library:newInstance(name,build)
 	window.center["1"]["Name"] = [[Center]];
 	window.center["1"]["BackgroundTransparency"] = 1;
 
-	-- StarterGui.roskeet.UI.Center.TabSections
 	window.center["2"] = Instance.new("Frame", window.center["1"]);
 	window.center["2"]["BorderSizePixel"] = 0;
 	window.center["2"]["BackgroundColor3"] = Color3.fromRGB(24, 24, 24);
@@ -134,15 +118,12 @@ function library:newInstance(name,build)
 	window.center["2"]["Name"] = [[TabSections]];
 	window.center["2"]["BackgroundTransparency"] = 0.1;
 
-	-- StarterGui.roskeet.UI.Center.TabSections.UICorner
 	window.center["3"] = Instance.new("UICorner", window.center["2"]);
 	window.center["3"]["CornerRadius"] = UDim.new(0, 4);
 
-	-- StarterGui.roskeet.UI.Center.TabSections.UIStroke
 	window.center["4"] = Instance.new("UIStroke", window.center["2"]);
 	window.center["4"]["Color"] = Color3.fromRGB(61, 61, 61);
 
-	-- StarterGui.roskeet.UI.Center.TabFrames
 	window.center["5"] = Instance.new("Frame", window.center["1"]);
 	window.center["5"]["BorderSizePixel"] = 0;
 	window.center["5"]["BackgroundColor3"] = Color3.fromRGB(24, 24, 24);
@@ -152,11 +133,9 @@ function library:newInstance(name,build)
 	window.center["5"]["Name"] = [[TabFrames]];
 	window.center["5"]["BackgroundTransparency"] = 0.1;
 
-	-- StarterGui.roskeet.UI.Center.TabFrames.UIStroke
 	window.center["6"] = Instance.new("UIStroke", window.center["5"]);
 	window.center["6"]["Color"] = Color3.fromRGB(61, 61, 61);
 
-	-- StarterGui.roskeet.UI.Center.TabFrames.UICorner
 	window.center["7"] = Instance.new("UICorner", window.center["5"]);
 	window.center["7"]["CornerRadius"] = UDim.new(0, 4);
 
@@ -196,7 +175,6 @@ function library:newInstance(name,build)
 		end
 	end)
 
-	-- tween helpers
 	local function tweenProperty(target, property, to, info)
 		local tweenInfo = info or tween.info
 		local t = TweenService:Create(target, tweenInfo, {[property] = to})
@@ -218,14 +196,12 @@ function library:newInstance(name,build)
 		end
 	end
 
-	-- input helpers
 	local function getMouseGuiPosition()
 		local pos = UserInputService:GetMouseLocation()
 		local inset = GuiService:GetGuiInset()
 		return Vector2.new(pos.X - inset.X, pos.Y - inset.Y)
 	end
 
-	-- manage popover activity (ensure only one open at a time)
 	local activePopovers = {}
 	local function closeAllPopoversExcept(skip)
 		for element, closer in pairs(activePopovers) do
@@ -243,7 +219,6 @@ function library:newInstance(name,build)
 		activePopovers[element] = nil
 	end
 
-	-- ensure tab button container has a layout
 	do
 		local hasLayout = false
 		for _, child in ipairs(window.top["6"]:GetChildren()) do
@@ -562,9 +537,10 @@ function library:newInstance(name,build)
 					return element
 				end
 
-				function subsection:newSelectbox(labelText, items, defaultValue, onChange)
+				function subsection:newSelectbox(labelText, items, defaultValue, onChange, isMulti)
 					labelText = labelText or "Selectbox"
 					items = items or {}
+					isMulti = isMulti or false
 					local root = Instance.new("TextLabel", content)
 					root.BorderSizePixel = 0
 					root.TextSize = 12
@@ -613,9 +589,12 @@ function library:newInstance(name,build)
 					local dList = Instance.new("UIListLayout", dropdown)
 					dList.SortOrder = Enum.SortOrder.LayoutOrder
 
-					local isMulti = type(defaultValue) == "table"
 					local selectedSet = {}
-					if isMulti then for _, v in ipairs(defaultValue) do selectedSet[tostring(v)] = true end end
+					if isMulti then 
+						if type(defaultValue) == "table" then
+							for _, v in ipairs(defaultValue) do selectedSet[tostring(v)] = true end 
+						end
+					end
 					local element = attachCommonElementAPI({_ui = {root = root, button = button, dropdown = dropdown}, _value = isMulti and selectedSet or defaultValue, _active = false, type = "selectbox"})
 					if type(onChange) == "function" then element:SetCallback(onChange) end
 
@@ -679,7 +658,7 @@ function library:newInstance(name,build)
 						opt.TextSize = 12
 						opt.TextScaled = false
 						opt.FontFace = Font.new([[rbxasset://fonts/families/GothamSSm.json]], Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
-						opt.TextColor3 = Color3.fromRGB(141, 141, 141)
+						opt.TextColor3 = Color3.fromRGB(86, 86, 86)
 						opt.BackgroundTransparency = 1
 						opt.AutoButtonColor = false
 						opt.Size = UDim2.new(1, 0, 0, 16)
@@ -690,6 +669,7 @@ function library:newInstance(name,build)
 								local key = tostring(it)
 								selectedSet[key] = not selectedSet[key]
 								opt.BackgroundTransparency = selectedSet[key] and 0 or 1
+								TweenService:Create(opt, tween.infoFast, {TextColor3 = selectedSet[key] and Color3.fromRGB(141, 141, 141) or Color3.fromRGB(86, 86, 86)}):Play()
 								element._value = selectedSet
 								updateButtonText()
 								element:_fireChanged()
@@ -701,11 +681,14 @@ function library:newInstance(name,build)
 							end
 						end)
 						opt.MouseEnter:Connect(function()
-							opt.BackgroundTransparency = 0
-							opt.BackgroundColor3 = Color3.fromRGB(26, 26, 26)
+							if not selectedSet[tostring(it)] then
+								TweenService:Create(opt, tween.infoFast, {TextColor3 = Color3.fromRGB(100, 100, 100)}):Play()
+							end
 						end)
 						opt.MouseLeave:Connect(function()
-							opt.BackgroundTransparency = selectedSet[tostring(it)] and 0 or 1
+							if not selectedSet[tostring(it)] then
+								TweenService:Create(opt, tween.infoFast, {TextColor3 = Color3.fromRGB(86, 86, 86)}):Play()
+							end
 						end)
 					end
 
@@ -714,6 +697,7 @@ function library:newInstance(name,build)
 							for key, ob in pairs(optionButtons) do
 								local sel = selectedSet[key] == true
 								ob.BackgroundTransparency = sel and 0 or 1
+								TweenService:Create(ob, tween.infoFast, {TextColor3 = sel and Color3.fromRGB(141, 141, 141) or Color3.fromRGB(86, 86, 86)}):Play()
 							end
 							updateButtonText()
 						else
@@ -736,6 +720,7 @@ function library:newInstance(name,build)
 							for key, ob in pairs(optionButtons) do
 								local sel = selectedSet[key] == true
 								ob.BackgroundTransparency = sel and 0 or 1
+								TweenService:Create(ob, tween.infoFast, {TextColor3 = sel and Color3.fromRGB(141, 141, 141) or Color3.fromRGB(86, 86, 86)}):Play()
 							end
 							updateButtonText()
 							self:_fireChanged()
