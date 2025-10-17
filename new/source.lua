@@ -1048,17 +1048,14 @@ function library:newInstance(name,build)
 
 					function element:SetValue(value)
 						if type(value) == "table" and value.Color and value.Transparency then
-							-- Table format: {Color = Color3, Transparency = number}
 							self._value = value
 							currentColor = value.Color
 							currentTransparency = value.Transparency
 						elseif typeof(value) == "Color3" then
-							-- Backward compatibility: Color3 only
 							self._value = {Color = value, Transparency = 0}
 							currentColor = value
 							currentTransparency = 0
 						else
-							-- Default fallback
 							self._value = {Color = defaultColor, Transparency = 0}
 							currentColor = defaultColor
 							currentTransparency = 0
