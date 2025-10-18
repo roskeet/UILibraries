@@ -253,6 +253,7 @@ function library:newInstance(name,build)
 		button.BackgroundColor3 = Color3.fromRGB(23, 23, 23)
 		button.FontFace = Font.new([[rbxasset://fonts/families/GothamSSm.json]], Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
 		button.AutomaticSize = Enum.AutomaticSize.X
+		button.TextXAlignment = Enum.TextXAlignment.Left
 		button.Size = UDim2.new(0, 0, 0, 20)
 		button.Text = name
 		button.AutoButtonColor = false
