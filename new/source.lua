@@ -510,33 +510,246 @@ function library:newInstance(name,build)
 				end
 
 				local function attachCommonElementAPI(element)
-					function element:GetValue()
-						return element._value
-					end
-					function element:SetValue(v)
-						element._value = v
-						if element._fireChanged then element:_fireChanged() end
-					end
-					element._callback = nil
-					function element:SetCallback(cb)
-						if type(cb) == "function" then element._callback = cb else element._callback = nil end
-						return element
-					end
-					function element:_fireChanged()
-						if type(self._callback) == "function" then
-							local ok, err = pcall(self._callback, self._value)
-							if not ok then warn("[roskeet] element callback error:", err) end
-						end
-					end
-					function element:Show()
-						element._ui.root.Visible = true
-					end
-					function element:Hide()
-						element._ui.root.Visible = false
-					end
-					return element
-				end
+                    function element:GetValue()
+                        if element.type == "selectbox" and element._value and type(element._value) == "table" then
+                            return element:GetValue() -- Use existing GetValue for multi-select
+                        end
+                        return element._value
+                    end
+                    function element:SetValue(v)
+                        element._value = v
+                        if element._fireChanged then element:_fireChanged() end
+                    end
+                    element._callback = nil
+                    function element:SetCallback(cb)
+                        if type(cb) == "function" then element._callback = cb else element._callback = nil end
+                        return element
+                    end
+                    function element:_fireChanged()
+                        if type(self._callback) == "function" then
+                            local valueToPass = self.type == "selectbox" and type(self._value) == "table" and self:GetValue() or self._value
+                            local ok, err = pcall(self._callback, valueToPass)
+                            if not ok then warn("[roskeet] element callback error:", err) end
+                        end
+                    end
+                    function element:Show()
+                        element._ui.root.Visible = true
+                    end
+                    function element:Hide()
+                        element._ui.root.Visible = false
+                    end
+                    return element
+                end
 
+                function subsection:newSelectbox(labelText, items, defaultValue, onChange, isMulti)
+                    labelText = labelText or "Selectbox"
+                    items = items or {}
+                    isMulti = isMulti or false
+                    local root = Instance.new("TextLabel", content)
+                    root.BorderSizePixel = 0
+                    root.TextSize = 12
+                    root.TextXAlignment = Enum.TextXAlignment.Left
+                    root.TextYAlignment = Enum.TextYAlignment.Top
+                    root.BackgroundTransparency = 1
+                    root.Size = UDim2.new(1, -8, 0, 30)
+                    root.TextColor3 = Color3.fromRGB(144, 144, 144)
+                    root.FontFace = Font.new([[rbxasset://fonts/families/GothamSSm.json]], Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
+                    root.Text = labelText
+                    root.ZIndex = 2
+                    local button = Instance.new("TextButton", root)
+                    button.BorderSizePixel = 0
+                    button.TextXAlignment = Enum.TextXAlignment.Left
+                    button.TextSize = 10
+                    button.TextScaled = false
+                    button.AutoButtonColor = false
+                    button.TextColor3 = Color3.fromRGB(141, 141, 141)
+                    button.BackgroundColor3 = Color3.fromRGB(41, 41, 41)
+                    button.FontFace = Font.new([[rbxasset://fonts/families/GothamSSm.json]], Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
+                    button.ZIndex = 2
+                    button.Size = UDim2.new(1, 0, 0, 12)
+                    button.Position = UDim2.new(0, 0, 0, 16)
+                    local btnCorner = Instance.new("UICorner", button)
+                    btnCorner.CornerRadius = UDim.new(0, 4)
+                    local btnPad = Instance.new("UIPadding", button)
+                    btnPad.PaddingRight = UDim.new(0, 4)
+                    btnPad.PaddingLeft = UDim.new(0, 4)
+                    local stroke = Instance.new("UIStroke", button)
+                    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                    stroke.Color = Color3.fromRGB(61, 61, 61)
+                    local dropdown = Instance.new("Frame", button)
+                    dropdown.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+                    dropdown.Visible = false
+                    dropdown.AutomaticSize = Enum.AutomaticSize.Y
+                    dropdown.Size = UDim2.new(1.03738, 0, 0, 37)
+                    dropdown.Position = UDim2.new(0, -4, 0, 16)
+                    local dCorner = Instance.new("UICorner", dropdown)
+                    dCorner.CornerRadius = UDim.new(0, 4)
+                    local dStroke = Instance.new("UIStroke", dropdown)
+                    dStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                    dStroke.Color = Color3.fromRGB(61, 61, 61)
+                    local dPad = Instance.new("UIPadding", dropdown)
+                    dPad.PaddingRight = UDim.new(0, 4)
+                    dPad.PaddingLeft = UDim.new(0, 4)
+                    local dList = Instance.new("UIListLayout", dropdown)
+                    dList.SortOrder = Enum.SortOrder.LayoutOrder
+
+                    local selectedSet = {}
+                    if isMulti then 
+                        if type(defaultValue) == "table" then
+                            for _, v in ipairs(defaultValue) do selectedSet[tostring(v)] = true end 
+                        end
+                    end
+                    local element = attachCommonElementAPI({
+                        _ui = {root = root, button = button, dropdown = dropdown}, 
+                        _value = isMulti and selectedSet or defaultValue, 
+                        _active = false, 
+                        type = "selectbox",
+                        _isMulti = isMulti -- Store isMulti for reference
+                    })
+                    if type(onChange) == "function" then element:SetCallback(onChange) end
+
+                    local function setActive(active)
+                        element._active = active
+                        element._ui.dropdown.Visible = active
+                        root.ZIndex = active and 3 or 2
+                        button.ZIndex = active and 3 or 2
+                        dropdown.ZIndex = active and 3 or 2
+
+                        if active then
+                            closeAllPopoversExcept(element)
+                            markPopoverActive(element, function()
+                                setActive(false)
+                            end)
+                        else
+                            markPopoverInactive(element)
+                        end
+                    end
+
+                    button.MouseButton1Click:Connect(function()
+                        setActive(not element._active)
+                    end)
+
+                    UserInputService.InputBegan:Connect(function(input, gp)
+                        if gp then return end
+                        if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2) and element._active then
+                            local mousePos = UserInputService:GetMouseLocation()
+                            local function contains(gui)
+                                if not gui then return false end
+                                local pos = gui.AbsolutePosition
+                                local size = gui.AbsoluteSize
+                                return mousePos.X >= pos.X and mousePos.X <= pos.X + size.X and mousePos.Y >= pos.Y and mousePos.Y <= pos.Y + size.Y
+                            end
+                            local inside = contains(button) or contains(dropdown)
+                            if not inside then setActive(false) end
+                        end
+                    end)
+
+                    local optionButtons = {}
+                    local function getMultiValues()
+                        local out = {}
+                        for _, item in ipairs(items) do -- Preserve original order
+                            local key = tostring(item)
+                            if selectedSet[key] then
+                                table.insert(out, key)
+                            end
+                        end
+                        return out
+                    end
+
+                    local function updateButtonText()
+                        if isMulti then
+                            local vals = getMultiValues()
+                            button.Text = (#vals > 0) and table.concat(vals, ", ") or "None"
+                        else
+                            button.Text = element._value and tostring(element._value) or ""
+                        end
+                    end
+
+                    for _, it in ipairs(items) do
+                        local opt = Instance.new("TextButton", dropdown)
+                        opt.BorderSizePixel = 0
+                        opt.TextXAlignment = Enum.TextXAlignment.Left
+                        opt.TextSize = 12
+                        opt.TextScaled = false
+                        opt.FontFace = Font.new([[rbxasset://fonts/families/GothamSSm.json]], Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
+                        opt.TextColor3 = Color3.fromRGB(86, 86, 86)
+                        opt.BackgroundTransparency = 1
+                        opt.AutoButtonColor = false
+                        opt.Size = UDim2.new(1, 0, 0, 16)
+                        opt.Text = tostring(it)
+                        optionButtons[tostring(it)] = opt
+                        opt.MouseButton1Click:Connect(function()
+                            if isMulti then
+                                local key = tostring(it)
+                                selectedSet[key] = not selectedSet[key]
+                                opt.BackgroundTransparency = 1
+                                TweenService:Create(opt, tween.infoFast, {TextColor3 = selectedSet[key] and Color3.fromRGB(141, 141, 141) or Color3.fromRGB(86, 86, 86)}):Play()
+                                element._value = selectedSet
+                                updateButtonText()
+                                element:_fireChanged() -- This will now pass getMultiValues() result
+                            else
+                                element:SetValue(it)
+                                button.Text = tostring(it)
+                                setActive(false)
+                                element:_fireChanged()
+                            end
+                        end)
+                        opt.MouseEnter:Connect(function()
+                            if not selectedSet[tostring(it)] then
+                                TweenService:Create(opt, tween.infoFast, {TextColor3 = Color3.fromRGB(120, 120, 120)}):Play()
+                            end
+                        end)
+                        opt.MouseLeave:Connect(function()
+                            if not selectedSet[tostring(it)] then
+                                TweenService:Create(opt, tween.infoFast, {TextColor3 = Color3.fromRGB(86, 86, 86)}):Play()
+                            end
+                        end)
+                    end
+
+                    if defaultValue ~= nil then
+                        if isMulti then
+                            for key, ob in pairs(optionButtons) do
+                                local sel = selectedSet[key] == true
+                                ob.BackgroundTransparency = 1
+                                TweenService:Create(ob, tween.infoFast, {TextColor3 = sel and Color3.fromRGB(141, 141, 141) or Color3.fromRGB(86, 86, 86)}):Play()
+                            end
+                            updateButtonText()
+                        else
+                            button.Text = tostring(defaultValue)
+                        end
+                    end
+
+                    function element:GetValue()
+                        if isMulti then return getMultiValues() end
+                        return element._value
+                    end
+
+                    function element:SetValue(v)
+                        if isMulti then
+                            selectedSet = {}
+                            if type(v) == "table" then
+                                for _, x in ipairs(v) do selectedSet[tostring(x)] = true end
+                            end
+                            element._value = selectedSet
+                            for key, ob in pairs(optionButtons) do
+                                local sel = selectedSet[key] == true
+                                ob.BackgroundTransparency = 1
+                                TweenService:Create(ob, tween.infoFast, {TextColor3 = sel and Color3.fromRGB(141, 141, 141) or Color3.fromRGB(86, 86, 86)}):Play()
+                            end
+                            updateButtonText()
+                            self:_fireChanged()
+                            return
+                        end
+                        self._value = v
+                        button.Text = tostring(v)
+                        self:_fireChanged()
+                    end
+
+                    return element
+                end
+
+
+                
 				function subsection:newSelectbox(labelText, items, defaultValue, onChange, isMulti)
 					labelText = labelText or "Selectbox"
 					items = items or {}
@@ -588,7 +801,7 @@ function library:newInstance(name,build)
 					dPad.PaddingLeft = UDim.new(0, 4)
 					local dList = Instance.new("UIListLayout", dropdown)
 					dList.SortOrder = Enum.SortOrder.LayoutOrder
-
+				
 					local selectedSet = {}
 					if isMulti then 
 						if type(defaultValue) == "table" then
@@ -597,14 +810,14 @@ function library:newInstance(name,build)
 					end
 					local element = attachCommonElementAPI({_ui = {root = root, button = button, dropdown = dropdown}, _value = isMulti and selectedSet or defaultValue, _active = false, type = "selectbox"})
 					if type(onChange) == "function" then element:SetCallback(onChange) end
-
+				
 					local function setActive(active)
 						element._active = active
 						element._ui.dropdown.Visible = active
 						root.ZIndex = active and 3 or 2
 						button.ZIndex = active and 3 or 2
 						dropdown.ZIndex = active and 3 or 2
-
+				
 						if active then
 							closeAllPopoversExcept(element)
 							markPopoverActive(element, function()
@@ -614,11 +827,11 @@ function library:newInstance(name,build)
 							markPopoverInactive(element)
 						end
 					end
-
+				
 					button.MouseButton1Click:Connect(function()
 						setActive(not element._active)
 					end)
-
+				
 					UserInputService.InputBegan:Connect(function(input, gp)
 						if gp then return end
 						if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2) and element._active then
@@ -633,15 +846,19 @@ function library:newInstance(name,build)
 							if not inside then setActive(false) end
 						end
 					end)
-
+				
 					local optionButtons = {}
 					local function getMultiValues()
 						local out = {}
-						for k, v in pairs(selectedSet) do if v then table.insert(out, k) end end
-						table.sort(out)
+						for _, item in ipairs(items) do -- Preserve original order
+							local key = tostring(item)
+							if selectedSet[key] then
+								table.insert(out, key)
+							end
+						end
 						return out
 					end
-
+				
 					local function updateButtonText()
 						if isMulti then
 							local vals = getMultiValues()
@@ -650,7 +867,7 @@ function library:newInstance(name,build)
 							button.Text = element._value and tostring(element._value) or ""
 						end
 					end
-
+				
 					for _, it in ipairs(items) do
 						local opt = Instance.new("TextButton", dropdown)
 						opt.BorderSizePixel = 0
@@ -682,7 +899,7 @@ function library:newInstance(name,build)
 						end)
 						opt.MouseEnter:Connect(function()
 							if not selectedSet[tostring(it)] then
-								TweenService:Create(opt, tween.infoFast, {TextColor3 = Color3.fromRGB(100, 100, 100)}):Play()
+								TweenService:Create(opt, tween.infoFast, {TextColor3 = Color3.fromRGB(120, 120, 120)}):Play()
 							end
 						end)
 						opt.MouseLeave:Connect(function()
@@ -691,7 +908,7 @@ function library:newInstance(name,build)
 							end
 						end)
 					end
-
+				
 					if defaultValue ~= nil then
 						if isMulti then
 							for key, ob in pairs(optionButtons) do
@@ -704,12 +921,12 @@ function library:newInstance(name,build)
 							button.Text = tostring(defaultValue)
 						end
 					end
-
+				
 					function element:GetValue()
 						if isMulti then return getMultiValues() end
 						return element._value
 					end
-
+				
 					function element:SetValue(v)
 						if isMulti then
 							selectedSet = {}
@@ -730,7 +947,7 @@ function library:newInstance(name,build)
 						button.Text = tostring(v)
 						self:_fireChanged()
 					end
-
+				
 					return element
 				end
 
@@ -1438,7 +1655,7 @@ function library:newInstance(name,build)
 					if type(onChange) == "function" then element:SetCallback(onChange) end
 
 					local function applyStroke()
-						local target = element._dragging and Color3.fromRGB(100, 100, 100) or Color3.fromRGB(61, 61, 61)
+						local target = element._dragging and Color3.fromRGB(120, 120, 120) or Color3.fromRGB(61, 61, 61)
 						if element._strokeTween then element._strokeTween:Cancel() end
 						element._strokeTween = TweenService:Create(bStroke, tween.info, {Color = target})
 						element._strokeTween:Play()
